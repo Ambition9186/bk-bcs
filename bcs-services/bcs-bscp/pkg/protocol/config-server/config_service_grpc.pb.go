@@ -163,12 +163,14 @@ const (
 	Config_BatchUpsertKvs_FullMethodName                    = "/pbcs.Config/BatchUpsertKvs"
 	Config_UnDeleteKv_FullMethodName                        = "/pbcs.Config/UnDeleteKv"
 	Config_UndoKv_FullMethodName                            = "/pbcs.Config/UndoKv"
+	Config_ImportKvs_FullMethodName                         = "/pbcs.Config/ImportKvs"
 	Config_ListClients_FullMethodName                       = "/pbcs.Config/ListClients"
 	Config_ListClientEvents_FullMethodName                  = "/pbcs.Config/ListClientEvents"
 	Config_ListClientQuerys_FullMethodName                  = "/pbcs.Config/ListClientQuerys"
 	Config_CreateClientQuery_FullMethodName                 = "/pbcs.Config/CreateClientQuery"
 	Config_UpdateClientQuery_FullMethodName                 = "/pbcs.Config/UpdateClientQuery"
 	Config_DeleteClientQuery_FullMethodName                 = "/pbcs.Config/DeleteClientQuery"
+	Config_CheckClientQueryName_FullMethodName              = "/pbcs.Config/CheckClientQueryName"
 	Config_ClientConfigVersionStatistics_FullMethodName     = "/pbcs.Config/ClientConfigVersionStatistics"
 	Config_ClientPullTrendStatistics_FullMethodName         = "/pbcs.Config/ClientPullTrendStatistics"
 	Config_ClientPullStatistics_FullMethodName              = "/pbcs.Config/ClientPullStatistics"
@@ -177,6 +179,8 @@ const (
 	Config_ClientVersionStatistics_FullMethodName           = "/pbcs.Config/ClientVersionStatistics"
 	Config_ListClientLabelAndAnnotation_FullMethodName      = "/pbcs.Config/ListClientLabelAndAnnotation"
 	Config_ClientSpecificFailedReason_FullMethodName        = "/pbcs.Config/ClientSpecificFailedReason"
+	Config_CompareConfigItemConflicts_FullMethodName        = "/pbcs.Config/CompareConfigItemConflicts"
+	Config_CompareKvConflicts_FullMethodName                = "/pbcs.Config/CompareKvConflicts"
 )
 
 // ConfigClient is the client API for Config service.
@@ -257,6 +261,7 @@ type ConfigClient interface {
 	ListTemplateRevisions(ctx context.Context, in *ListTemplateRevisionsReq, opts ...grpc.CallOption) (*ListTemplateRevisionsResp, error)
 	// 暂时不对外开发（删除模版后，服务引用的latest版本会回退到上一个老版本）
 	//rpc DeleteTemplateRevision(DeleteTemplateRevisionReq) returns (DeleteTemplateRevisionResp) {
+	//
 	//option (google.api.http) = {
 	//delete :
 	//"/api/v1/config/biz/{biz_id}/template_spaces/{template_space_id}/templates/{template_id}/template_revisions/{template_revision_id}"
@@ -332,6 +337,7 @@ type ConfigClient interface {
 	BatchUpsertKvs(ctx context.Context, in *BatchUpsertKvsReq, opts ...grpc.CallOption) (*BatchUpsertKvsResp, error)
 	UnDeleteKv(ctx context.Context, in *UnDeleteKvReq, opts ...grpc.CallOption) (*UnDeleteKvResp, error)
 	UndoKv(ctx context.Context, in *UndoKvReq, opts ...grpc.CallOption) (*UndoKvResp, error)
+	ImportKvs(ctx context.Context, in *ImportKvsReq, opts ...grpc.CallOption) (*ImportKvsResp, error)
 	ListClients(ctx context.Context, in *ListClientsReq, opts ...grpc.CallOption) (*ListClientsResp, error)
 	ListClientEvents(ctx context.Context, in *ListClientEventsReq, opts ...grpc.CallOption) (*ListClientEventsResp, error)
 	// client query related interface
@@ -339,6 +345,7 @@ type ConfigClient interface {
 	CreateClientQuery(ctx context.Context, in *CreateClientQueryReq, opts ...grpc.CallOption) (*CreateClientQueryResp, error)
 	UpdateClientQuery(ctx context.Context, in *UpdateClientQueryReq, opts ...grpc.CallOption) (*UpdateClientQueryResp, error)
 	DeleteClientQuery(ctx context.Context, in *DeleteClientQueryReq, opts ...grpc.CallOption) (*DeleteClientQueryResp, error)
+	CheckClientQueryName(ctx context.Context, in *CheckClientQueryNameReq, opts ...grpc.CallOption) (*CheckClientQueryNameResp, error)
 	// client chart related interface
 	ClientConfigVersionStatistics(ctx context.Context, in *client.ClientCommonReq, opts ...grpc.CallOption) (*structpb.Struct, error)
 	ClientPullTrendStatistics(ctx context.Context, in *client.ClientCommonReq, opts ...grpc.CallOption) (*structpb.Struct, error)
@@ -348,6 +355,9 @@ type ConfigClient interface {
 	ClientVersionStatistics(ctx context.Context, in *client.ClientCommonReq, opts ...grpc.CallOption) (*structpb.Struct, error)
 	ListClientLabelAndAnnotation(ctx context.Context, in *ListClientLabelAndAnnotationReq, opts ...grpc.CallOption) (*structpb.Struct, error)
 	ClientSpecificFailedReason(ctx context.Context, in *client.ClientCommonReq, opts ...grpc.CallOption) (*structpb.Struct, error)
+	// config item compare conflicts related interface
+	CompareConfigItemConflicts(ctx context.Context, in *CompareConfigItemConflictsReq, opts ...grpc.CallOption) (*CompareConfigItemConflictsResp, error)
+	CompareKvConflicts(ctx context.Context, in *CompareKvConflictsReq, opts ...grpc.CallOption) (*CompareKvConflictsResp, error)
 }
 
 type configClient struct {
@@ -1591,6 +1601,15 @@ func (c *configClient) UndoKv(ctx context.Context, in *UndoKvReq, opts ...grpc.C
 	return out, nil
 }
 
+func (c *configClient) ImportKvs(ctx context.Context, in *ImportKvsReq, opts ...grpc.CallOption) (*ImportKvsResp, error) {
+	out := new(ImportKvsResp)
+	err := c.cc.Invoke(ctx, Config_ImportKvs_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *configClient) ListClients(ctx context.Context, in *ListClientsReq, opts ...grpc.CallOption) (*ListClientsResp, error) {
 	out := new(ListClientsResp)
 	err := c.cc.Invoke(ctx, Config_ListClients_FullMethodName, in, out, opts...)
@@ -1639,6 +1658,15 @@ func (c *configClient) UpdateClientQuery(ctx context.Context, in *UpdateClientQu
 func (c *configClient) DeleteClientQuery(ctx context.Context, in *DeleteClientQueryReq, opts ...grpc.CallOption) (*DeleteClientQueryResp, error) {
 	out := new(DeleteClientQueryResp)
 	err := c.cc.Invoke(ctx, Config_DeleteClientQuery_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *configClient) CheckClientQueryName(ctx context.Context, in *CheckClientQueryNameReq, opts ...grpc.CallOption) (*CheckClientQueryNameResp, error) {
+	out := new(CheckClientQueryNameResp)
+	err := c.cc.Invoke(ctx, Config_CheckClientQueryName_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1711,6 +1739,24 @@ func (c *configClient) ListClientLabelAndAnnotation(ctx context.Context, in *Lis
 func (c *configClient) ClientSpecificFailedReason(ctx context.Context, in *client.ClientCommonReq, opts ...grpc.CallOption) (*structpb.Struct, error) {
 	out := new(structpb.Struct)
 	err := c.cc.Invoke(ctx, Config_ClientSpecificFailedReason_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *configClient) CompareConfigItemConflicts(ctx context.Context, in *CompareConfigItemConflictsReq, opts ...grpc.CallOption) (*CompareConfigItemConflictsResp, error) {
+	out := new(CompareConfigItemConflictsResp)
+	err := c.cc.Invoke(ctx, Config_CompareConfigItemConflicts_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *configClient) CompareKvConflicts(ctx context.Context, in *CompareKvConflictsReq, opts ...grpc.CallOption) (*CompareKvConflictsResp, error) {
+	out := new(CompareKvConflictsResp)
+	err := c.cc.Invoke(ctx, Config_CompareKvConflicts_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1795,6 +1841,7 @@ type ConfigServer interface {
 	ListTemplateRevisions(context.Context, *ListTemplateRevisionsReq) (*ListTemplateRevisionsResp, error)
 	// 暂时不对外开发（删除模版后，服务引用的latest版本会回退到上一个老版本）
 	//rpc DeleteTemplateRevision(DeleteTemplateRevisionReq) returns (DeleteTemplateRevisionResp) {
+	//
 	//option (google.api.http) = {
 	//delete :
 	//"/api/v1/config/biz/{biz_id}/template_spaces/{template_space_id}/templates/{template_id}/template_revisions/{template_revision_id}"
@@ -1870,6 +1917,7 @@ type ConfigServer interface {
 	BatchUpsertKvs(context.Context, *BatchUpsertKvsReq) (*BatchUpsertKvsResp, error)
 	UnDeleteKv(context.Context, *UnDeleteKvReq) (*UnDeleteKvResp, error)
 	UndoKv(context.Context, *UndoKvReq) (*UndoKvResp, error)
+	ImportKvs(context.Context, *ImportKvsReq) (*ImportKvsResp, error)
 	ListClients(context.Context, *ListClientsReq) (*ListClientsResp, error)
 	ListClientEvents(context.Context, *ListClientEventsReq) (*ListClientEventsResp, error)
 	// client query related interface
@@ -1877,6 +1925,7 @@ type ConfigServer interface {
 	CreateClientQuery(context.Context, *CreateClientQueryReq) (*CreateClientQueryResp, error)
 	UpdateClientQuery(context.Context, *UpdateClientQueryReq) (*UpdateClientQueryResp, error)
 	DeleteClientQuery(context.Context, *DeleteClientQueryReq) (*DeleteClientQueryResp, error)
+	CheckClientQueryName(context.Context, *CheckClientQueryNameReq) (*CheckClientQueryNameResp, error)
 	// client chart related interface
 	ClientConfigVersionStatistics(context.Context, *client.ClientCommonReq) (*structpb.Struct, error)
 	ClientPullTrendStatistics(context.Context, *client.ClientCommonReq) (*structpb.Struct, error)
@@ -1886,6 +1935,9 @@ type ConfigServer interface {
 	ClientVersionStatistics(context.Context, *client.ClientCommonReq) (*structpb.Struct, error)
 	ListClientLabelAndAnnotation(context.Context, *ListClientLabelAndAnnotationReq) (*structpb.Struct, error)
 	ClientSpecificFailedReason(context.Context, *client.ClientCommonReq) (*structpb.Struct, error)
+	// config item compare conflicts related interface
+	CompareConfigItemConflicts(context.Context, *CompareConfigItemConflictsReq) (*CompareConfigItemConflictsResp, error)
+	CompareKvConflicts(context.Context, *CompareKvConflictsReq) (*CompareKvConflictsResp, error)
 }
 
 // UnimplementedConfigServer should be embedded to have forward compatible implementations.
@@ -2303,6 +2355,9 @@ func (UnimplementedConfigServer) UnDeleteKv(context.Context, *UnDeleteKvReq) (*U
 func (UnimplementedConfigServer) UndoKv(context.Context, *UndoKvReq) (*UndoKvResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UndoKv not implemented")
 }
+func (UnimplementedConfigServer) ImportKvs(context.Context, *ImportKvsReq) (*ImportKvsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ImportKvs not implemented")
+}
 func (UnimplementedConfigServer) ListClients(context.Context, *ListClientsReq) (*ListClientsResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListClients not implemented")
 }
@@ -2320,6 +2375,9 @@ func (UnimplementedConfigServer) UpdateClientQuery(context.Context, *UpdateClien
 }
 func (UnimplementedConfigServer) DeleteClientQuery(context.Context, *DeleteClientQueryReq) (*DeleteClientQueryResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteClientQuery not implemented")
+}
+func (UnimplementedConfigServer) CheckClientQueryName(context.Context, *CheckClientQueryNameReq) (*CheckClientQueryNameResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckClientQueryName not implemented")
 }
 func (UnimplementedConfigServer) ClientConfigVersionStatistics(context.Context, *client.ClientCommonReq) (*structpb.Struct, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClientConfigVersionStatistics not implemented")
@@ -2344,6 +2402,12 @@ func (UnimplementedConfigServer) ListClientLabelAndAnnotation(context.Context, *
 }
 func (UnimplementedConfigServer) ClientSpecificFailedReason(context.Context, *client.ClientCommonReq) (*structpb.Struct, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClientSpecificFailedReason not implemented")
+}
+func (UnimplementedConfigServer) CompareConfigItemConflicts(context.Context, *CompareConfigItemConflictsReq) (*CompareConfigItemConflictsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CompareConfigItemConflicts not implemented")
+}
+func (UnimplementedConfigServer) CompareKvConflicts(context.Context, *CompareKvConflictsReq) (*CompareKvConflictsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CompareKvConflicts not implemented")
 }
 
 // UnsafeConfigServer may be embedded to opt out of forward compatibility for this service.
@@ -4823,6 +4887,24 @@ func _Config_UndoKv_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Config_ImportKvs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ImportKvsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigServer).ImportKvs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Config_ImportKvs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigServer).ImportKvs(ctx, req.(*ImportKvsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Config_ListClients_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListClientsReq)
 	if err := dec(in); err != nil {
@@ -4927,6 +5009,24 @@ func _Config_DeleteClientQuery_Handler(srv interface{}, ctx context.Context, dec
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ConfigServer).DeleteClientQuery(ctx, req.(*DeleteClientQueryReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Config_CheckClientQueryName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckClientQueryNameReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigServer).CheckClientQueryName(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Config_CheckClientQueryName_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigServer).CheckClientQueryName(ctx, req.(*CheckClientQueryNameReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -5071,6 +5171,42 @@ func _Config_ClientSpecificFailedReason_Handler(srv interface{}, ctx context.Con
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ConfigServer).ClientSpecificFailedReason(ctx, req.(*client.ClientCommonReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Config_CompareConfigItemConflicts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompareConfigItemConflictsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigServer).CompareConfigItemConflicts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Config_CompareConfigItemConflicts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigServer).CompareConfigItemConflicts(ctx, req.(*CompareConfigItemConflictsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Config_CompareKvConflicts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompareKvConflictsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ConfigServer).CompareKvConflicts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Config_CompareKvConflicts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ConfigServer).CompareKvConflicts(ctx, req.(*CompareKvConflictsReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -5631,6 +5767,10 @@ var Config_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Config_UndoKv_Handler,
 		},
 		{
+			MethodName: "ImportKvs",
+			Handler:    _Config_ImportKvs_Handler,
+		},
+		{
 			MethodName: "ListClients",
 			Handler:    _Config_ListClients_Handler,
 		},
@@ -5653,6 +5793,10 @@ var Config_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteClientQuery",
 			Handler:    _Config_DeleteClientQuery_Handler,
+		},
+		{
+			MethodName: "CheckClientQueryName",
+			Handler:    _Config_CheckClientQueryName_Handler,
 		},
 		{
 			MethodName: "ClientConfigVersionStatistics",
@@ -5685,6 +5829,14 @@ var Config_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ClientSpecificFailedReason",
 			Handler:    _Config_ClientSpecificFailedReason_Handler,
+		},
+		{
+			MethodName: "CompareConfigItemConflicts",
+			Handler:    _Config_CompareConfigItemConflicts_Handler,
+		},
+		{
+			MethodName: "CompareKvConflicts",
+			Handler:    _Config_CompareKvConflicts_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

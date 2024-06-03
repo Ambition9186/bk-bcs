@@ -23,6 +23,7 @@ import (
 
 	"github.com/Tencent/bk-bcs/bcs-common/common/blog"
 	"github.com/Tencent/bk-bcs/bcs-common/pkg/auth/iam"
+	cm "github.com/Tencent/bk-bcs/bcs-common/pkg/bcsapiv4/clustermanager"
 	"github.com/Tencent/bk-bcs/bcs-common/pkg/otel/trace"
 	"github.com/Tencent/bk-bcs/bcs-services/pkg/bcs-auth-v4/cluster"
 	"github.com/Tencent/bk-bcs/bcs-services/pkg/bcs-auth-v4/namespace"
@@ -37,6 +38,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
 	"golang.org/x/exp/slices"
+	"google.golang.org/grpc/metadata"
 
 	"github.com/Tencent/bk-bcs/bcs-scenarios/bcs-gitops-manager/cmd/manager/options"
 	"github.com/Tencent/bk-bcs/bcs-scenarios/bcs-gitops-manager/internal/dao"
@@ -45,6 +47,7 @@ import (
 	"github.com/Tencent/bk-bcs/bcs-scenarios/bcs-gitops-manager/pkg/proxy/argocd/analyze"
 	"github.com/Tencent/bk-bcs/bcs-scenarios/bcs-gitops-manager/pkg/proxy/argocd/session"
 	"github.com/Tencent/bk-bcs/bcs-scenarios/bcs-gitops-manager/pkg/store"
+	"github.com/Tencent/bk-bcs/bcs-scenarios/bcs-gitops-manager/pkg/utils"
 )
 
 // MiddlewareInterface defines the middleware interface
@@ -83,6 +86,8 @@ type MiddlewareInterface interface {
 	CheckGetApplicationSet(ctx context.Context, appsetName string) (int, error)
 	ListApplicationSets(ctx context.Context, query *appsetpkg.ApplicationSetListQuery) (
 		*v1alpha1.ApplicationSetList, error)
+
+	CheckClusterScopedPermission(ctx context.Context, user string, cluster string, action iam.ActionID) (int, error)
 }
 
 // handler 定义 http 中间件处理对象
@@ -91,16 +96,17 @@ type handler struct {
 	clusterPermission   *cluster.BCSClusterPerm
 	namespacePermission *namespace.BCSNamespacePerm
 
-	option             *options.Options
-	store              store.Store
-	analysisCollection analyze.AnalysisCollection
-	appCollect         analyze.CollectApplication
+	option     *options.Options
+	store      store.Store
+	appCollect analyze.CollectApplication
+	db         dao.Interface
 
 	secretSession     *session.SecretSession
 	monitorSession    *session.MonitorSession
 	argoSession       *session.ArgoSession
 	argoStreamSession *session.ArgoStreamSession
 	terraformSession  *session.TerraformSession
+	analysisSession   *session.AnalysisSession
 
 	tracer func(context.Context) error
 }
@@ -110,16 +116,17 @@ func NewMiddlewareHandler() MiddlewareInterface {
 	op := options.GlobalOptions()
 	return &handler{
 		option:              op,
+		db:                  dao.GlobalDB(),
 		store:               store.GlobalStore(),
 		argoSession:         session.NewArgoSession(),
 		argoStreamSession:   session.NewArgoStreamSession(),
 		secretSession:       session.NewSecretSession(),
 		terraformSession:    session.NewTerraformSession(),
+		analysisSession:     session.NewAnalysisSession(),
 		monitorSession:      session.NewMonitorSession(),
 		projectPermission:   project.NewBCSProjectPermClient(op.IAMClient),
 		clusterPermission:   cluster.NewBCSClusterPermClient(op.IAMClient),
 		namespacePermission: namespace.NewBCSNamespacePermClient(op.IAMClient),
-		analysisCollection:  analyze.GetAnalysisClient(),
 		appCollect:          analyze.NewCollectApplication(),
 	}
 }
@@ -153,6 +160,7 @@ func (h *handler) HttpWrapper(handler HttpHandler) http.Handler {
 		argoStreamSession: h.argoStreamSession,
 		secretSession:     h.secretSession,
 		terraformSession:  h.terraformSession,
+		analysisSession:   h.analysisSession,
 		monitorSession:    h.monitorSession,
 	}
 	blog.Infof("[Trace] request handler '%s' add to otel", handlerName)
@@ -245,24 +253,28 @@ func (h *handler) CheckNamespaceScopedResourcePermission(ctx context.Context, pr
 	if h.isAdminUser(user.GetUser()) {
 		return http.StatusOK, nil
 	}
-	var permit bool
-	var err error
-	switch action {
-	case iamnamespace.NameSpaceScopedView:
-		permit, _, _, err = h.namespacePermission.
-			CanViewNamespaceScopedResource(user.GetUser(), projectID, clusterID, namespace)
-	case iamnamespace.NameSpaceScopedCreate:
-		permit, _, _, err = h.namespacePermission.
-			CanCreateNamespaceScopedResource(user.GetUser(), projectID, clusterID, namespace)
-	case iamnamespace.NameSpaceScopedUpdate:
-		permit, _, _, err = h.namespacePermission.
-			CanUpdateNamespaceScopedResource(user.GetUser(), projectID, clusterID, namespace)
-	case iamnamespace.NameSpaceScopedDelete:
-		permit, _, _, err = h.namespacePermission.
-			CanDeleteNamespaceScopedResource(user.GetUser(), projectID, clusterID, namespace)
-	default:
-		return http.StatusInternalServerError, errors.Errorf("unknown iam action '%s'", action)
-	}
+	permit, err := h.checkBKPermissionWithRetry(ctx, func() (bool, error) {
+		var permit bool
+		var err error
+		switch action {
+		case iamnamespace.NameSpaceScopedView:
+			permit, _, _, err = h.namespacePermission.
+				CanViewNamespaceScopedResource(user.GetUser(), projectID, clusterID, namespace)
+		case iamnamespace.NameSpaceScopedCreate:
+			permit, _, _, err = h.namespacePermission.
+				CanCreateNamespaceScopedResource(user.GetUser(), projectID, clusterID, namespace)
+		case iamnamespace.NameSpaceScopedUpdate:
+			permit, _, _, err = h.namespacePermission.
+				CanUpdateNamespaceScopedResource(user.GetUser(), projectID, clusterID, namespace)
+		case iamnamespace.NameSpaceScopedDelete:
+			permit, _, _, err = h.namespacePermission.
+				CanDeleteNamespaceScopedResource(user.GetUser(), projectID, clusterID, namespace)
+		default:
+			permit = false
+			err = errors.Errorf("unknown iam action '%s'", action)
+		}
+		return permit, err
+	})
 	if err != nil {
 		return http.StatusInternalServerError, errors.Wrapf(err, "auth center failed")
 	}
@@ -277,29 +289,37 @@ func (h *handler) CheckNamespaceScopedResourcePermission(ctx context.Context, pr
 func (h *handler) CheckProjectPermissionByID(ctx context.Context, projectName, projectID string,
 	action iam.ActionID) (int, error) {
 	user := ctx.Value(ctxKeyUser).(*proxy.UserInfo)
-	h.analysisCollection.UpdateActivityUser(projectName, user.GetUser())
+	go h.db.UpdateActivityUserWithName(&dao.ActivityUserItem{
+		Project: projectName, User: user.GetUser(),
+	})
 	if h.isAdminUser(user.GetUser()) {
 		return http.StatusOK, nil
 	}
-	var permit bool
-	var err error
-	switch action {
-	case iam.ProjectView:
-		permit, _, _, err = h.projectPermission.CanViewProject(user.GetUser(), projectID)
-	case iam.ProjectEdit:
-		permit, _, _, err = h.projectPermission.CanEditProject(user.GetUser(), projectID)
-	case iam.ProjectDelete:
-		permit, _, _, err = h.projectPermission.CanDeleteProject(user.GetUser(), projectID)
-	case iam.ProjectCreate:
-		permit, _, _, err = h.projectPermission.CanCreateProject(user.GetUser())
-	default:
-		return http.StatusBadRequest, errors.Errorf("unknown iam action '%s'", action)
-	}
+
+	permit, err := h.checkBKPermissionWithRetry(ctx, func() (bool, error) {
+		var permit bool
+		var err error
+		switch action {
+		case iam.ProjectView:
+			permit, _, _, err = h.projectPermission.CanViewProject(user.GetUser(), projectID)
+		case iam.ProjectEdit:
+			permit, _, _, err = h.projectPermission.CanEditProject(user.GetUser(), projectID)
+		case iam.ProjectDelete:
+			permit, _, _, err = h.projectPermission.CanDeleteProject(user.GetUser(), projectID)
+		case iam.ProjectCreate:
+			permit, _, _, err = h.projectPermission.CanCreateProject(user.GetUser())
+		default:
+			permit = false
+			err = errors.Errorf("unknown iam action '%s'", action)
+		}
+		return permit, err
+	})
 	if err != nil {
 		return http.StatusInternalServerError, errors.Wrapf(err, "auth center failed")
 	}
 	if !permit {
-		return http.StatusForbidden, errors.Errorf("project '%s' for action '%s' forbidden", projectID, action)
+		return http.StatusForbidden, errors.Errorf("project '%s' for action '%s' forbidden",
+			projectID, action)
 	}
 	return http.StatusOK, nil
 }
@@ -323,19 +343,27 @@ func (h *handler) CheckClusterPermission(ctx context.Context, query *clusterclie
 		return http.StatusForbidden, errors.Errorf("cluster no project control information")
 	}
 
-	var permit bool
-	switch action {
-	case iam.ClusterView:
-		permit, _, _, err = h.clusterPermission.CanViewCluster(user.GetUser(), projectID, argoCluster.Name)
-	case iam.ClusterManage:
-		permit, _, _, err = h.clusterPermission.CanManageCluster(user.GetUser(), projectID, argoCluster.Name)
-	case iam.ClusterDelete:
-		permit, _, _, err = h.clusterPermission.CanDeleteCluster(user.GetUser(), projectID, argoCluster.Name)
-	default:
-		return http.StatusBadRequest, errors.Errorf("unknown iam action '%s'", action)
-	}
-	if err != nil {
-		return http.StatusInternalServerError, errors.Errorf("auth center failed")
+	permit, permissionErr := h.checkBKPermissionWithRetry(ctx, func() (bool, error) {
+		var permit bool
+		var permissionErr error
+		switch action {
+		case iam.ClusterView:
+			permit, _, _, permissionErr = h.clusterPermission.
+				CanViewCluster(user.GetUser(), projectID, argoCluster.Name)
+		case iam.ClusterManage:
+			permit, _, _, permissionErr = h.clusterPermission.
+				CanManageCluster(user.GetUser(), projectID, argoCluster.Name)
+		case iam.ClusterDelete:
+			permit, _, _, permissionErr = h.clusterPermission.
+				CanDeleteCluster(user.GetUser(), projectID, argoCluster.Name)
+		default:
+			permit = false
+			permissionErr = errors.Errorf("unknown iam action '%s'", action)
+		}
+		return permit, permissionErr
+	})
+	if permissionErr != nil {
+		return http.StatusInternalServerError, errors.Wrapf(permissionErr, "auth center failed")
 	}
 	if !permit {
 		return http.StatusForbidden, errors.Errorf("cluster '%v' forbidden", *query)
@@ -355,7 +383,7 @@ func (h *handler) CheckRepositoryPermission(ctx context.Context, repoName string
 		return nil, http.StatusNotFound, errors.Errorf("repository '%s' not found", repoName)
 	}
 	// nolint
-	if slices.Contains[[]string](h.option.PublicProjects, repo.Project) {
+	if slices.Contains(h.option.PublicProjects, repo.Project) {
 		return repo, http.StatusOK, nil
 	}
 	projectName := repo.Project
@@ -372,6 +400,7 @@ func (h *handler) checkRepositoryBelongProject(ctx context.Context, repoUrl, pro
 		return false, fmt.Errorf("repo '%s' not found", repoUrl)
 	}
 	// passthrough if repository's project equal to public projects
+	// nolint
 	if slices.Contains[[]string](h.option.PublicProjects, repo.Project) {
 		return true, nil
 	}
@@ -560,6 +589,7 @@ func (h *handler) ListClusters(ctx context.Context, projectNames []string) (
 	projectClusters := make(map[string][]string)
 	controlledClusters := make(map[string]v1alpha1.Cluster)
 	for _, cls := range clusterList.Items {
+		// nolint
 		if !slices.Contains[[]string](projectNames, cls.Project) {
 			continue
 		}
@@ -655,6 +685,67 @@ func (h *handler) ListApplications(ctx context.Context, query *appclient.Applica
 	return apps, nil
 }
 
+// CheckClusterScopedPermission check the user with cluster_scoped permission
+func (h *handler) CheckClusterScopedPermission(ctx context.Context, user string,
+	clusterID string, action iam.ActionID) (int, error) {
+	clusterResp, err := h.option.ClusterManagerClient.GetCluster(
+		metadata.NewOutgoingContext(ctx,
+			metadata.New(map[string]string{"Authorization": fmt.Sprintf("Bearer %s", h.option.APIGatewayToken)}),
+		), &cm.GetClusterReq{ClusterID: clusterID})
+	if err != nil {
+		return http.StatusInternalServerError, errors.Wrapf(err, "get cluster '%s' failed", clusterID)
+	}
+	if clusterResp.Code != 0 {
+		return http.StatusBadRequest, errors.Errorf("get cluster '%s' code not 0: %s",
+			clusterID, clusterResp.Message)
+	}
+	projectID := clusterResp.Data.ProjectID
+	permit, err := h.checkBKPermissionWithRetry(ctx, func() (bool, error) {
+		var permit bool
+		switch action {
+		case cluster.ClusterScopedCreate:
+			permit, _, _, err = h.clusterPermission.CanCreateClusterScopedResource(user, projectID, clusterID)
+		case cluster.ClusterScopedView:
+
+			permit, _, _, err = h.clusterPermission.CanViewClusterScopedResource(user, projectID, clusterID)
+		case cluster.ClusterScopedUpdate:
+
+			permit, _, _, err = h.clusterPermission.CanUpdateClusterScopedResource(user, projectID, clusterID)
+		case cluster.ClusterScopedDelete:
+			permit, _, _, err = h.clusterPermission.CanDeleteClusterScopedResource(user, projectID, clusterID)
+		default:
+			permit = false
+			err = errors.Errorf("unknown iam action '%s'", action)
+		}
+		return permit, err
+	})
+	if err != nil {
+		return http.StatusInternalServerError, errors.Wrapf(err, "auth center failed")
+	}
+	if !permit {
+		return http.StatusForbidden, errors.Errorf("cluster '%s' for user '%s' with %s is forbidden",
+			clusterID, user, action)
+	}
+	return http.StatusOK, nil
+}
+
 func (h *handler) isAdminUser(user string) bool {
+	// nolint
 	return slices.Contains[[]string](h.option.AdminUsers, user)
+}
+
+func (h *handler) checkBKPermissionWithRetry(ctx context.Context, f func() (bool, error)) (bool, error) {
+	var permit bool
+	var err error
+	for i := 1; i <= 5; i++ {
+		permit, err = f()
+		if err == nil {
+			return permit, nil
+		}
+		if !utils.NeedRetry(err) {
+			break
+		}
+		blog.Infof("RequestID[%s] check permission failed(will retry %d)", RequestID(ctx), i)
+	}
+	return false, errors.Wrapf(err, "auth center failed")
 }

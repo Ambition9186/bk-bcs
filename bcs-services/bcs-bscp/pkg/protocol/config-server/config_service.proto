@@ -25,6 +25,7 @@ import "pkg/protocol/core/template-variable/template_variable.proto";
 import "pkg/protocol/core/kv/kvs.proto";
 import "pkg/protocol/core/released-kv/released_kv.proto";
 import "google/api/annotations.proto";
+import "google/api/visibility.proto";
 import "google/protobuf/struct.proto";
 
 package pbcs;
@@ -32,6 +33,7 @@ package pbcs;
 option go_package = "github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/protocol/config-server;pbcs";
 
 service Config {
+  option (google.api.api_visibility).restriction = "BKAPIGW";
   rpc CreateApp(CreateAppReq) returns (CreateAppResp) {
     option (google.api.http) = {
       post: "/api/v1/config/create/app/app/biz_id/{biz_id}"
@@ -411,7 +413,8 @@ service Config {
   }
   /* 暂时不对外开发（删除模版后，服务引用的latest版本会回退到上一个老版本）
   rpc DeleteTemplateRevision(DeleteTemplateRevisionReq) returns (DeleteTemplateRevisionResp) {
-      option (google.api.http) = {
+
+option (google.api.http) = {
           delete :
   "/api/v1/config/biz/{biz_id}/template_spaces/{template_space_id}/templates/{template_id}/template_revisions/{template_revision_id}"
       };
@@ -703,12 +706,14 @@ service Config {
     };
   }
   rpc GetGroupByName(GetGroupByNameReq) returns (pbgroup.Group) {
+    option (google.api.method_visibility).restriction = "BKAPIGW";
     option (google.api.http) = {
       get: "/api/v1/config/biz/{biz_id}/groups/query/name/{group_name}"
     };
   }
 
   rpc Publish(PublishReq) returns (PublishResp) {
+    option (google.api.method_visibility).restriction = "BKAPIGW";
     option (google.api.http) = {
       post: "/api/v1/config/update/strategy/publish/publish/release_id/{release_id}/app_id/{app_id}/biz_id/{biz_id}"
       body: "*"
@@ -811,6 +816,12 @@ service Config {
       post: "/api/v1/config/biz/{biz_id}/apps/{app_id}/kvs/{key}/undo"
     };
   };
+  rpc ImportKvs(ImportKvsReq) returns (ImportKvsResp) {
+    option (google.api.http) = {
+      post: "/api/v1/config/biz/{biz_id}/apps/{app_id}/kvs/{format}/import"
+      body: "*"
+    };
+  };
 
   rpc ListClients(ListClientsReq) returns (ListClientsResp) {
     option (google.api.http) = {
@@ -847,6 +858,11 @@ service Config {
   rpc DeleteClientQuery(DeleteClientQueryReq) returns (DeleteClientQueryResp) {
     option (google.api.http) = {
       delete: "/api/v1/config/biz/{biz_id}/apps/{app_id}/client_querys/{id}"
+    };
+  };
+  rpc CheckClientQueryName(CheckClientQueryNameReq) returns (CheckClientQueryNameResp) {
+    option (google.api.http) = {
+      get: "/api/v1/config/biz/{biz_id}/apps/{app_id}/client_querys/check_exists"
     };
   };
 
@@ -897,6 +913,18 @@ service Config {
     option (google.api.http) = {
       post: "/api/v1/config/biz/{biz_id}/apps/{app_id}/clients/specific_failed_reason"
       body: "*"
+    };
+  }
+
+  // config item compare conflicts related interface
+  rpc CompareConfigItemConflicts(CompareConfigItemConflictsReq) returns (CompareConfigItemConflictsResp) {
+    option (google.api.http) = {
+      get: "/api/v1/config/biz/{biz_id}/apps/{app_id}/config_items/compare_conflicts"
+    };
+  }
+  rpc CompareKvConflicts(CompareKvConflictsReq) returns (CompareKvConflictsResp) {
+    option (google.api.http) = {
+      get: "/api/v1/config/biz/{biz_id}/apps/{app_id}/kvs/compare_conflicts"
     };
   }
 }
@@ -1180,6 +1208,7 @@ message ListConfigItemsReq {
 message ListConfigItemsResp {
   uint32 count = 1;
   repeated pbci.ConfigItem details = 2;
+  uint32 conflict_number = 3;
 }
 
 message ListReleasedConfigItemsReq {
@@ -2540,6 +2569,15 @@ message UndoKvReq {
 
 message UndoKvResp {}
 
+message ImportKvsReq {
+  uint32 biz_id = 1;
+  uint32 app_id = 2;
+  string format = 3;
+  string data = 4;
+}
+
+message ImportKvsResp {}
+
 message ListClientsReq {
   message Order {
     string desc = 1;
@@ -2556,8 +2594,15 @@ message ListClientsReq {
 }
 
 message ListClientsResp {
+  message Item {
+    pbclient.Client client = 1;
+    string cpu_usage_str = 2;
+    string cpu_max_usage_str = 3;
+    string memory_usage_str = 4;
+    string memory_max_usage_str = 5;
+  }
   uint32 count = 1;
-  repeated pbclient.Client details = 2;
+  repeated Item details = 2;
 }
 
 message ListClientEventsReq {
@@ -2626,8 +2671,61 @@ message DeleteClientQueryReq {
 
 message DeleteClientQueryResp {}
 
+message CheckClientQueryNameReq {
+  string name = 1;
+  uint32 biz_id = 2;
+  uint32 app_id = 3;
+}
+
+message CheckClientQueryNameResp {
+  bool exist = 1;
+}
+
 message ListClientLabelAndAnnotationReq {
   uint32 biz_id = 1;
   uint32 app_id = 2;
   int64 last_heartbeat_time = 3;
+}
+
+message CompareConfigItemConflictsReq {
+  uint32 biz_id = 1;
+  uint32 app_id = 2;
+  uint32 release_id = 3;
+  uint32 other_app_id = 4;
+}
+
+message CompareConfigItemConflictsResp {
+  message ConfigItem {
+    string name = 1;
+    string path = 2;
+    string file_type = 3;  // file_type is enum type, source resource reference: pkg/dal/table/config_item.go
+    string file_mode = 4;  // file_mode is enum type, source resource reference: pkg/dal/table/config_item.go
+    string memo = 5;
+    string user = 6;
+    string user_group = 7;
+    string privilege = 8;
+    string sign = 9;
+    uint64 byte_size = 10;
+    uint32 id = 11;
+  }
+  repeated ConfigItem exist = 1;
+  repeated ConfigItem non_exist = 2;
+}
+
+message CompareKvConflictsReq {
+  uint32 biz_id = 1;
+  uint32 app_id = 2;
+  uint32 release_id = 3;
+  uint32 other_app_id = 4;
+}
+
+message CompareKvConflictsResp {
+  message Kv {
+    string key = 1;
+    string kv_type = 2;
+    string value = 3;
+    string memo = 4;
+  }
+  repeated Kv exist = 1;
+  repeated Kv non_exist = 2;
 }

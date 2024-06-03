@@ -419,12 +419,12 @@ func (cli *CceClient) ShowNode(clusterId, nodeId string) (*model.Node, error) {
 }
 
 // CreateClusterNodePool create cluster node pool
-func (cli *CceClient) CreateClusterNodePool(req *model.CreateNodePoolRequest) (*model.CreateNodePoolResponse, error) {
+func (cli *CceClient) CreateClusterNodePool(data *CreateNodePoolRequest) (*model.CreateNodePoolResponse, error) {
 	if cli == nil {
 		return nil, cloudprovider.ErrServerIsNil
 	}
 
-	rsp, err := cli.cce.CreateNodePool(req)
+	rsp, err := cli.cce.CreateNodePool(data.trans2NodePoolTemplate())
 	if err != nil {
 		return nil, err
 	}
@@ -538,7 +538,7 @@ func (cli *CceClient) UpdateNodePoolDesiredNodes(clusterId, nodePoolId string, d
 					Taints:  taints,
 					K8sTags: k8sTags,
 				},
-				InitialNodeCount: desiredSize,
+				InitialNodeCount: desiredSize + *nodePool.Spec.InitialNodeCount,
 				Autoscaling:      autoscalingConfig,
 			},
 		},

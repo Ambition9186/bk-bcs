@@ -20,18 +20,24 @@ import (
 	"strings"
 
 	"github.com/GehirnInc/crypt"
-	_ "github.com/GehirnInc/crypt/sha512_crypt"
+	_ "github.com/GehirnInc/crypt/sha256_crypt" // use init func
 	"github.com/huaweicloud/huaweicloud-sdk-go-v3/services/cce/v3/model"
+	v1 "k8s.io/api/core/v1"
 
 	proto "github.com/Tencent/bk-bcs/bcs-services/bcs-cluster-manager/api/clustermanager"
-	"github.com/Tencent/bk-bcs/bcs-services/bcs-cluster-manager/internal/common"
 )
 
 // Crypt encryption node password
 func Crypt(password string) (string, error) {
-	str, err := crypt.SHA512.New().Generate([]byte(password), []byte("$6$tM3|cY3+tI4)"))
+	ct := crypt.SHA256.New()
+	str, err := ct.Generate([]byte(password), []byte("$5$tM3c"))
 	if err != nil {
 		return "", err
+	}
+
+	err = ct.Verify(str, []byte(password))
+	if err != nil {
+		return "", fmt.Errorf("verify password failed: %s", err)
 	}
 
 	return base64.RawStdEncoding.EncodeToString([]byte(str)), nil
@@ -41,7 +47,7 @@ func Crypt(password string) (string, error) {
 func GenerateModifyClusterNodePoolInput(group *proto.NodeGroup, clusterID string,
 	oldNodePool *model.NodePool) *model.UpdateNodePoolRequest {
 	// cce nodePool名称以小写字母开头，由小写字母、数字、中划线(-)组成，长度范围1-50位，且不能以中划线(-)结尾
-	name := strings.ToLower(group.Name)
+	name := strings.ToLower(group.NodeGroupID)
 
 	req := &model.UpdateNodePoolRequest{
 		NodepoolId: group.CloudNodeGroupID,
@@ -80,18 +86,7 @@ func GenerateModifyClusterNodePoolInput(group *proto.NodeGroup, clusterID string
 		}
 	}
 
-	if group.Tags != nil {
-		req.Body.Spec.NodeTemplate.K8sTags = group.Tags
-
-		for k, v := range group.Tags {
-			key := k
-			value := v
-			req.Body.Spec.NodeTemplate.UserTags = append(req.Body.Spec.NodeTemplate.UserTags, model.UserTag{
-				Key:   &key,
-				Value: &value,
-			})
-		}
-	}
+	req.Body.Spec.NodeTemplate.K8sTags = group.NodeTemplate.Labels
 
 	if len(req.Body.Spec.NodeTemplate.Taints) == 0 && oldNodePool.Spec.NodeTemplate.Taints != nil {
 		req.Body.Spec.NodeTemplate.Taints = *oldNodePool.Spec.NodeTemplate.Taints
@@ -110,136 +105,107 @@ func GenerateModifyClusterNodePoolInput(group *proto.NodeGroup, clusterID string
 
 // GenerateCreateNodePoolRequest get cce nodepool request
 func GenerateCreateNodePoolRequest(group *proto.NodeGroup,
-	cluster *proto.Cluster) (*model.CreateNodePoolRequest, error) {
+	cluster *proto.Cluster) (*CreateNodePoolRequest, error) {
 	var (
-		initialNodeCount  int32 = 0
 		clusterId               = cluster.SystemID
-		podSecurityGroups []model.SecurityId
+		subnetId                = ""
+		securityGroups          = make([]string, 0)
+		az                      = "random" // 随机选择可用区
+		sshKey                  = ""
+		dataVolumes             = make([]*Volume, 0)
+		taints                  = make([]v1.Taint, 0)
+		period           uint32 = 0
+		renewFlag               = ""
+		containerRuntime        = ""
+		password                = ""
 	)
 
-	nodeTemplate, err := GenerateNodeSpec(group)
+	if group.AutoScaling != nil {
+		// 指定可用区
+		if len(group.AutoScaling.Zones) > 0 {
+			az = group.AutoScaling.Zones[0]
+		}
+		// 华为云只支持设置一个子网
+		if len(group.AutoScaling.SubnetIDs) > 0 {
+			subnetId = group.AutoScaling.SubnetIDs[0]
+		}
+	}
+
+	for _, v := range group.LaunchTemplate.SecurityGroupIDs {
+		securityGroups = append(securityGroups, v)
+	}
+
+	diskSize, err := strconv.Atoi(group.LaunchTemplate.SystemDisk.DiskSize)
 	if err != nil {
 		return nil, err
 	}
 
-	if group.LaunchTemplate != nil {
-		for _, v := range group.LaunchTemplate.SecurityGroupIDs {
-			id := v
-			podSecurityGroups = append(podSecurityGroups, model.SecurityId{Id: &id})
-		}
-	}
-
-	return &model.CreateNodePoolRequest{
-		ClusterId: clusterId,
-		Body: &model.NodePool{
-			Kind:       "NodePool",
-			ApiVersion: "v3",
-			Metadata: &model.NodePoolMetadata{
-				Name: group.NodeGroupID,
-			},
-			Spec: &model.NodePoolSpec{
-				InitialNodeCount:  &initialNodeCount,
-				NodeTemplate:      nodeTemplate,
-				PodSecurityGroups: &podSecurityGroups,
-			},
-		},
-	}, nil
-}
-
-// GenerateNodeSpec get node spec
-func GenerateNodeSpec(nodeGroup *proto.NodeGroup) (*model.NodeSpec, error) {
-	if nodeGroup.LaunchTemplate == nil {
-		return nil, fmt.Errorf("node group launch template is nil")
-	}
-
-	var (
-		nodeBillingMode int32  = 0
-		maxPod          int32  = 256
-		periodType      string = "month"
-		periodNum       int32  = 1
-		az              string = "random" // 随机选择可用区
-		subnetId        string = ""
-	)
-
-	if nodeGroup.LaunchTemplate != nil {
-		if nodeGroup.LaunchTemplate.InstanceChargeType == common.PREPAID && nodeGroup.LaunchTemplate.Charge != nil {
-			nodeBillingMode = 1
-			periodNum = int32(nodeGroup.LaunchTemplate.Charge.Period)
-		}
-	}
-
-	if nodeGroup.AutoScaling != nil {
-		if len(nodeGroup.AutoScaling.Zones) > 0 {
-			az = nodeGroup.AutoScaling.Zones[0]
-		}
-		if len(nodeGroup.AutoScaling.SubnetIDs) > 0 {
-			subnetId = nodeGroup.AutoScaling.SubnetIDs[0]
-		}
-	}
-
-	if nodeGroup.LaunchTemplate.InstanceType == "" {
-		return nil, fmt.Errorf("the node specifications cannot be empty")
-	}
-
-	if nodeGroup.LaunchTemplate.SystemDisk == nil {
-		return nil, fmt.Errorf("the system disk information of a node cannot be empty")
-	}
-
-	if len(nodeGroup.LaunchTemplate.DataDisks) == 0 {
-		return nil, fmt.Errorf("the data disk information of a node cannot be empty")
-	}
-
-	if nodeGroup.NodeTemplate != nil && nodeGroup.NodeTemplate.MaxPodsPerNode != 0 {
-		maxPod = int32(nodeGroup.AutoScaling.MaxSize)
-	}
-
-	diskSize, err := strconv.Atoi(nodeGroup.LaunchTemplate.SystemDisk.DiskSize)
-	if err != nil {
-		return nil, err
-	}
-
-	dataVolumes := make([]model.Volume, 0)
-	for _, v := range nodeGroup.LaunchTemplate.DataDisks {
-		var size int
-		size, err = strconv.Atoi(v.DiskSize)
+	for _, v := range group.NodeTemplate.DataDisks {
+		size, err := strconv.Atoi(v.DiskSize)
 		if err != nil {
 			return nil, err
 		}
-
-		dataVolumes = append(dataVolumes, model.Volume{
-			Volumetype: v.DiskType,
+		dataVolumes = append(dataVolumes, &Volume{
 			Size:       int32(size),
+			VolumeType: v.DiskType,
+			MountPath:  v.MountTarget,
 		})
 	}
 
-	password, err := Crypt(nodeGroup.LaunchTemplate.InitLoginPassword)
-	if err != nil {
-		return nil, err
+	for _, v := range group.NodeTemplate.Taints {
+		taints = append(taints, v1.Taint{
+			Key:    v.Key,
+			Value:  v.Value,
+			Effect: v1.TaintEffect(v.Effect),
+		})
 	}
 
-	return &model.NodeSpec{
-		Flavor: nodeGroup.LaunchTemplate.InstanceType,
-		Az:     az,
-		Os:     &nodeGroup.NodeOS,
-		Login: &model.Login{
-			UserPassword: &model.UserPassword{
-				//username不填默认为root，password必须加盐并base64加密
-				Password: password,
+	if group.LaunchTemplate.Charge != nil {
+		period = group.LaunchTemplate.Charge.Period
+		renewFlag = group.LaunchTemplate.Charge.RenewFlag
+	}
+
+	if group.NodeTemplate.Runtime != nil {
+		containerRuntime = group.NodeTemplate.Runtime.ContainerRuntime
+	}
+
+	if group.LaunchTemplate.KeyPair != nil && group.LaunchTemplate.KeyPair.KeyID != "" {
+		sshKey = group.LaunchTemplate.KeyPair.KeyID
+	} else if group.LaunchTemplate.InitLoginPassword != "" {
+		password = group.LaunchTemplate.InitLoginPassword
+	}
+
+	return &CreateNodePoolRequest{
+		ClusterId: clusterId,
+		Name:      group.NodeGroupID,
+		Spec: CreateNodePoolSpec{
+			Template: CreateNodePoolTemplate{
+				Flavor: group.LaunchTemplate.InstanceType,
+				Az:     az,
+				Os:     group.NodeOS,
+				Login: Login{
+					SshKey: sshKey,
+					Passwd: password,
+				},
+				RootVolume: &Volume{
+					Size:       int32(diskSize),
+					VolumeType: group.LaunchTemplate.SystemDisk.DiskType,
+				},
+				DataVolumes: dataVolumes,
+				Charge: ChargePrepaid{
+					ChargeType: group.LaunchTemplate.InstanceChargeType,
+					Period:     period,
+					RenewFlag:  renewFlag,
+				},
+				Taints:           taints,
+				Labels:           group.NodeTemplate.Labels,
+				ContainerRuntime: containerRuntime,
+				MaxPod:           int32(group.NodeTemplate.MaxPodsPerNode),
+				PreScript:        group.NodeTemplate.PreStartUserScript,
+				PostScript:       group.NodeTemplate.UserScript,
 			},
-		},
-		RootVolume: &model.Volume{
-			Volumetype: nodeGroup.LaunchTemplate.SystemDisk.DiskType,
-			Size:       int32(diskSize),
-		},
-		DataVolumes: dataVolumes,
-		BillingMode: &nodeBillingMode,
-		ExtendParam: &model.NodeExtendParam{
-			MaxPods:    &maxPod,
-			PeriodType: &periodType,
-			PeriodNum:  &periodNum,
-		},
-		NodeNicSpec: &model.NodeNicSpec{
-			PrimaryNic: &model.NicSpec{SubnetId: &subnetId},
+			SecurityGroups: securityGroups,
+			SubnetId:       subnetId,
 		},
 	}, nil
 }
