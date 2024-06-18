@@ -56,7 +56,7 @@
                           <td v-if="isUnNamedVersion" class="selection">
                             <bk-checkbox
                               :disabled="group.id > 0 || config.file_state === 'DELETE'"
-                              :model-value="selectedIds.includes(config.id)"
+                              :model-value="selectedConfigItems.some((item) => item.id === config.id)"
                               @change="handleRowSelectionChange($event, config.id)" />
                           </td>
                           <td class="name">
@@ -259,7 +259,7 @@
     :title="t('确认删除该配置文件？')"
     @confirm="handleDeleteConfigConfirm">
     <div style="margin-bottom: 8px">
-      {{ t('配置文件') }}：<span style="color: #313238">{{ deleteConfig?.name }}</span>
+      {{ t('配置文件') }}：<span style="color: #313238">{{ fileAP(deleteConfig!) }}</span>
     </div>
     <div>{{ deleteConfigTips }}</div>
   </DeleteConfirmDialog>
@@ -272,6 +272,16 @@
       {{ t('配置模板套餐') }}: <span style="color: #313238">{{ deleteTemplatePkgName }}</span>
     </div>
     <div>{{ t('移除后本服务配置将不再引用该配置模板套餐，以后需要时可以重新从配置模板导入') }}</div>
+  </DeleteConfirmDialog>
+  <DeleteConfirmDialog
+    v-model:isShow="isRecoverConfigDialogShow"
+    :title="t('确认恢复该配置文件?')"
+    :confirm-text="t('恢复')"
+    @confirm="handleRecoverConfigConfirm">
+    <div style="margin-bottom: 8px">
+      {{ t('配置文件') }}：<span style="color: #313238">{{ fileAP(recoverConfig!) }}</span>
+    </div>
+    <div>{{ t(`配置文件恢复后，将覆盖新添加的配置文件`) + fileAP(recoverConfig!) }}</div>
   </DeleteConfirmDialog>
 </template>
 <script lang="ts" setup>
@@ -347,7 +357,7 @@
     searchStr: string;
   }>();
 
-  const emits = defineEmits(['clearStr', 'deleteConfig', 'updateSelectedIds']);
+  const emits = defineEmits(['clearStr', 'deleteConfig', 'updateSelectedIds', 'updateSelectedItems']);
 
   const loading = ref(false);
   const commonConfigListLoading = ref(false);
@@ -360,11 +370,13 @@
   const tableGroupsData = ref<IConfigsGroupData[]>([]);
   const editPanelShow = ref(false);
   const activeConfig = ref(0);
-  const selectedIds = ref<number[]>([]);
   const isDiffPanelShow = ref(false);
   const isSearchEmpty = ref(false);
   const isDeleteConfigDialogShow = ref(false);
   const deleteConfig = ref<IConfigTableItem>();
+  const recoverConfig = ref<IConfigTableItem>();
+  const isRecoverConfigDialogShow = ref(false);
+  const oldConfigIndex = ref(-1);
   const isDeletePkgDialogShow = ref(false);
   const deleteTemplatePkgName = ref('');
   const deleteTemplatePkgId = ref(0);
@@ -390,6 +402,7 @@
   const stickyIndex = ref(1);
   const tableRef = ref();
   const collapseHeader = ref();
+  const selectedConfigItems = ref<IConfigItem[]>([]);
 
   // 是否为未命名版本
   const isUnNamedVersion = computed(() => versionData.value.id === 0);
@@ -399,7 +412,7 @@
 
   // 全选checkbox选中状态
   const isIndeterminate = computed(() => {
-    return selectedIds.value.length > 0 && selectedIds.value.length <= configsCount.value;
+    return selectedConfigItems.value.length > 0 && selectedConfigItems.value.length <= configsCount.value;
   });
 
   const deleteConfigTips = computed(() => {
@@ -412,13 +425,13 @@
   });
 
   // 配置文件绝对路径
-  const fileAP = computed(() => (config: IConfigTableItem) => {
+  const fileAP = (config: IConfigTableItem) => {
     const { path, name } = config;
     if (path.endsWith('/')) {
       return `${path}${name}`;
     }
     return `${path}/${name}`;
-  });
+  };
 
   // 状态过滤列表
   const statusFilterList = computed(() => {
@@ -447,7 +460,7 @@
     async () => {
       await getBindingId();
       getAllConfigList();
-      selectedIds.value = [];
+      selectedConfigItems.value = [];
       emits('updateSelectedIds', []);
     },
   );
@@ -641,22 +654,30 @@
   // 全选
   const handleSelectAll = (val: boolean) => {
     if (val) {
-      selectedIds.value = configList.value.filter((item) => item.file_state !== 'DELETE').map((item) => item.id);
+      selectedConfigItems.value = configList.value.filter((item) => item.file_state !== 'DELETE');
     } else {
-      selectedIds.value = [];
+      selectedConfigItems.value = [];
     }
-    emits('updateSelectedIds', selectedIds.value);
+    emits(
+      'updateSelectedIds',
+      selectedConfigItems.value.map((item) => item.id),
+    );
+    emits('updateSelectedItems', selectedConfigItems.value);
   };
 
   // 非模板配置选择/取消选择
   const handleRowSelectionChange = (val: boolean, id: number) => {
-    const index = selectedIds.value.findIndex((i) => i === id);
+    const index = selectedConfigItems.value.findIndex((item) => item.id === id);
     if (val) {
-      index === -1 && selectedIds.value.push(id);
+      index === -1 && selectedConfigItems.value.push(configList.value.find((item) => item.id === id)!);
     } else {
-      index > -1 && selectedIds.value.splice(index, 1);
+      index > -1 && selectedConfigItems.value.splice(index, 1);
     }
-    emits('updateSelectedIds', selectedIds.value);
+    emits(
+      'updateSelectedIds',
+      selectedConfigItems.value.map((item) => item.id),
+    );
+    emits('updateSelectedItems', selectedConfigItems.value);
   };
 
   const handleEditOpen = (config: IConfigTableItem) => {
@@ -794,15 +815,51 @@
     if (permCheckLoading.value || !checkPermBeforeOperate('update')) {
       return;
     }
-    await unDeleteConfigItem(props.bkBizId, props.appId, config.id);
-    Message({ theme: 'success', message: t('恢复配置文件成功') });
-    config.file_state = 'UNCHANGE';
+    recoverConfig.value = config;
+    const configs = tableGroupsData.value.find((group) => group.id === 0)?.configs;
+    oldConfigIndex.value = configs!.findIndex(
+      (item) => fileAP(item) === fileAP(config) && item.file_state !== 'DELETE',
+    );
+    if (oldConfigIndex.value === -1) {
+      handleRecoverConfigConfirm();
+    } else {
+      isRecoverConfigDialogShow.value = true;
+    }
   };
 
-  // 批量删除配置项后刷新配置项列表
-  const refreshAfterBatchDelete = () => {
-    selectedIds.value = [];
+  const handleRecoverConfigConfirm = async () => {
+    await unDeleteConfigItem(props.bkBizId, props.appId, recoverConfig.value!.id);
+    isRecoverConfigDialogShow.value = false;
+    Message({ theme: 'success', message: t('恢复配置文件成功') });
+
+    // 获取冲突的模板套裁数据 直接覆盖
+    await getBoundTemplateList();
+    tableGroupsData.value = transListToTableData();
+    tableGroupsData.value
+      .find((group) => group.id === 0)!
+      .configs.find((config) => config.id === recoverConfig.value!.id)!.file_state = 'UNCHANGE';
+
+    // 获取冲突的非模板配置数据
+    await getCommonConfigList();
+    const conflictFileIds = configList.value.filter((config) => config.is_conflict).map((config) => config.id);
+    tableGroupsData.value
+      .find((group) => group.id === 0)
+      ?.configs.forEach((config) => {
+        if (conflictFileIds.includes(config.id)) {
+          config.is_conflict = true;
+        }
+      });
+    if (oldConfigIndex.value !== -1) {
+      const configs = tableGroupsData.value.find((group) => group.id === 0)?.configs;
+      configs!.splice(oldConfigIndex.value, 1);
+    }
+  };
+
+  // 批量操作配置项后刷新配置项列表
+  const refreshAfterBatchSet = () => {
+    selectedConfigItems.value = [];
     emits('updateSelectedIds', []);
+    emits('updateSelectedItems', []);
     getAllConfigList();
   };
 
@@ -818,7 +875,7 @@
   };
 
   defineExpose({
-    refreshAfterBatchDelete,
+    refreshAfterBatchSet,
     refresh: getAllConfigList,
   });
 </script>

@@ -37,8 +37,8 @@ import (
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
-	"golang.org/x/exp/slices"
 	"google.golang.org/grpc/metadata"
+	"k8s.io/utils/strings/slices"
 
 	"github.com/Tencent/bk-bcs/bcs-scenarios/bcs-gitops-manager/cmd/manager/options"
 	"github.com/Tencent/bk-bcs/bcs-scenarios/bcs-gitops-manager/internal/dao"
@@ -382,7 +382,6 @@ func (h *handler) CheckRepositoryPermission(ctx context.Context, repoName string
 	if repo == nil {
 		return nil, http.StatusNotFound, errors.Errorf("repository '%s' not found", repoName)
 	}
-	// nolint
 	if slices.Contains(h.option.PublicProjects, repo.Project) {
 		return repo, http.StatusOK, nil
 	}
@@ -400,8 +399,7 @@ func (h *handler) checkRepositoryBelongProject(ctx context.Context, repoUrl, pro
 		return false, fmt.Errorf("repo '%s' not found", repoUrl)
 	}
 	// passthrough if repository's project equal to public projects
-	// nolint
-	if slices.Contains[[]string](h.option.PublicProjects, repo.Project) {
+	if slices.Contains(h.option.PublicProjects, repo.Project) {
 		return true, nil
 	}
 
@@ -423,21 +421,12 @@ func (h *handler) CheckApplicationPermission(ctx context.Context, appName string
 		return nil, http.StatusNotFound, errors.Errorf("application '%s' not found", appName)
 	}
 	// 检查是否具备 ProjectView 权限
-	projectID := common.GetBCSProjectID(app.Annotations)
-	if projectID != "" {
-		// CheckProjectPermissionByID 检查登录态用户对于项目的权限
-		statusCode, err := h.CheckProjectPermissionByID(ctx, app.Spec.Project, projectID, iam.ProjectView) // nolint
-		if err != nil {
-			return nil, statusCode, errors.Wrapf(err, "check project '%s' permission failed", projectID)
-		}
-		return app, http.StatusOK, nil
-	}
 	argoProject, statusCode, err := h.CheckProjectPermission(ctx, app.Spec.Project, iam.ProjectView)
 	if err != nil {
 		return nil, statusCode, errors.Wrapf(err, "check project '%s' permission failed", app.Spec.Project)
 	}
 	// GetBCSProjectID get projectID from annotations
-	projectID = common.GetBCSProjectID(argoProject.Annotations)
+	projectID := common.GetBCSProjectID(argoProject.Annotations)
 
 	// 获取集群信息
 	argoCluster, err := h.store.GetCluster(ctx, &argocluster.ClusterQuery{
@@ -590,7 +579,7 @@ func (h *handler) ListClusters(ctx context.Context, projectNames []string) (
 	controlledClusters := make(map[string]v1alpha1.Cluster)
 	for _, cls := range clusterList.Items {
 		// nolint
-		if !slices.Contains[[]string](projectNames, cls.Project) {
+		if !slices.Contains(projectNames, cls.Project) {
 			continue
 		}
 		controlProjectID := common.GetBCSProjectID(cls.Annotations)
@@ -730,8 +719,7 @@ func (h *handler) CheckClusterScopedPermission(ctx context.Context, user string,
 }
 
 func (h *handler) isAdminUser(user string) bool {
-	// nolint
-	return slices.Contains[[]string](h.option.AdminUsers, user)
+	return slices.Contains(h.option.AdminUsers, user)
 }
 
 func (h *handler) checkBKPermissionWithRetry(ctx context.Context, f func() (bool, error)) (bool, error) {

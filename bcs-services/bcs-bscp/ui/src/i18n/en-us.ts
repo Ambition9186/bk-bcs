@@ -86,6 +86,8 @@ export default {
   客户端统计: 'Client statistics',
   客户端查询: 'Client query',
   客户端密钥: 'Client key',
+  业务名: 'Business Name',
+  业务: 'Business',
 
   // 配置管理
   版本名称: 'Version Name',
@@ -422,6 +424,12 @@ export default {
   示例面板: 'Sample panel',
   配置项导入成功: 'Configuration items are imported successfully',
   '请输入空间/套餐名称': 'Please enter space/package name',
+  '确认恢复该配置文件?': 'Confirm to recover the configuration file?',
+  '配置文件恢复后，将覆盖新添加的配置文件': 'After the configuration file is restored, the newly added configuration file',
+  批量操作: 'Batch operation',
+  批量修改权限: 'Batch edit permission',
+  配置文件权限批量修改成功: 'Succeeded in batch modifying configuration file permissions.',
+  保持不变: 'Remain unchanged',
 
   // 分组管理
   新增分组: 'New group',
@@ -458,7 +466,7 @@ export default {
   导入变量: 'Import variables',
   请输入变量名称: 'Please enter variable name',
   默认值: 'Default value',
-  描述: 'description',
+  描述: 'Description',
   '确认删除该全局变量？': 'Are you sure to delete this global variable?',
   '一旦删除，该操作将无法撤销，服务配置文件中不可再引用该全局变量，请谨慎操作': 'Once deleted, the operation cannot be undone, and the global variable can no longer be referenced in the service configuration file. Please operate with caution.',
   '定义全局变量后可供业务下所有的服务配置文件引用，使用go template语法引用，例如,变量使用详情请参考：': 'After defining global variables, they can be referenced by all service configuration files under the business. Use go template syntax for reference, such as {var}. For details on variable usage, please refer to:',
@@ -476,6 +484,7 @@ export default {
   '示例：': 'Example:',
   '变量名 变量类型 变量值 变量描述（可选）': 'Variable name Variable type Variable value Variable Description (optional)',
   ' bk_bscp_nginx_port number 8080 nginx端口': ' bk_bscp_nginx_port number 8080 nginx port',
+  导出变量: 'Export variables',
 
   // 配置模板
   '配置模板用于统一业务下服务间配置文件复用，可以在创建服务配置时引用配置模板。': 'Configuration templates are used to reuse configuration files between services under unified services, and can be referenced when creating service configurations.',
@@ -626,7 +635,7 @@ export default {
   '密钥仅用于 SDK/API 拉取配置使用。服务管理/配置管理/分组管理等功能的权限申请，请前往': 'The key is only used for SDK/API pull configurations. To apply for permissions for functions such as service management/configuration management/group management, please go to',
   蓝鲸权限中心: 'Blue Whale Authority Center',
   新建密钥: 'New Credentials',
-  '密钥名称/说明/关联规则/更新人': 'Key name/ Description/ Association rules/ Updater',
+  '密钥名称/密钥/说明/关联规则/更新人': 'Key name/ Key/ Description/ Association rules/ Updater',
   密钥名称: 'Key name',
   密钥名称支持中英文: 'Key name supports Chinese and English',
   密钥: 'Credentials',
@@ -770,6 +779,8 @@ export default {
   已拉取配置文件的客户端数量统计: 'Statistics on the number of clients whose configuration files have been pulled',
   已收藏为: 'Collected',
   已存在同名常用查询: 'A common search with the same name already exists',
+  '查询多个实例请使用竖线（"|"）分隔': 'To query multiple instances, separate them using a vertical bar ("|")',
+  '查询同一标签多个值时使用逗号（","）分隔，查询不同标签时使用竖线（"|"）分隔': 'Multiple values within the same tag are separated by commas (","), while different tags are separated by vertical bars ("|")',
 
   // 客户端统计
   配置版本发布: 'Configuration version release',
@@ -813,6 +824,13 @@ export default {
   暂无服务: 'No service',
   前往创建: 'Go to create',
   命令行工具: 'Command line tool',
+  重试: 'Retry',
+  批量重试: 'Batch Retry',
+  '当前已选择 {n} 个客户端，': 'Currently, {n} clients have been selected. ',
+  清除选择: 'clear selection',
+  '确定批量重试拉取客户端配置?': 'Confirm to retry pulling client configurations in batches',
+  '确定重试拉取客户端配置?': 'Confirm to retry pulling the client configuration',
+  重试成功: 'Retry success',
   '确认删除该常用查询?': 'Confirm to delete the common query?',
   配置拉取时间范围: 'Set the pull time range',
   前置脚本失败: 'PreHookFailed',
@@ -861,4 +879,5 @@ export default {
   可下钻图表: 'Drill-down chart',
   '组件类型 / 版本分布': 'Component type / Version distribution',
   下钻: 'Drill down',
+  总和: 'Total',
 };

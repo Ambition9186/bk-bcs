@@ -13,12 +13,15 @@
             :is-open-full-screen="isOpenFullScreen"
             :all-label="allLabel"
             :primary-dimension="primaryDimension"
+            :select-dimension="selectDimension"
+            :drill-dimension="drillDimension"
+            :is-stack="isStack"
             @refresh="handleRefresh"
             @toggle-full-screen="isOpenFullScreen = !isOpenFullScreen"
             @toggle-show-btn="isOpenPopover = $event"
             @select-dimension="selectedDimension = $event"
-            @select-down-dimension="selectedDownDimension = $event"
-            @toggle-chart-show-type="chartShowType = $event" />
+            @select-down-dimension="handleSelectDownDimension"
+            @toggle-chart-show-type="handleToggleChartShowType" />
         </template>
         <template #head-suffix>
           <div class="head-suffix">
@@ -91,7 +94,12 @@
     appId: number;
     primaryDimension: string;
     allLabel: string[];
+    selectDimension: string[];
+    drillDimension: string;
+    isStack: boolean;
   }>();
+
+  const emits = defineEmits(['select']);
 
   const currentType = ref('column');
   const componentMap = {
@@ -106,11 +114,11 @@
   const isOpenPopover = ref(false);
   const loading = ref(false);
   const data = ref<IClientLabelItem[]>([]);
-  const selectedDimension = ref<string[]>([props.primaryDimension]);
-  const selectedDownDimension = ref('');
+  const selectedDimension = ref<string[]>(props.selectDimension || []);
+  const selectedDownDimension = ref(props.drillDimension || '');
   const navDrillDownData = ref('');
   const isDrillDown = ref(false);
-  const chartShowType = ref('tile');
+  const chartShowType = ref(props.isStack ? 'pile' : 'tile');
   const drillDownItem = ref<IClientLabelItem>();
   const jumpLabels = ref<{ [key: string]: string }>();
 
@@ -137,6 +145,14 @@
     () => {
       selectedDownDimension.value = '';
       isDrillDown.value = false;
+      loadChartData();
+      handleSelecteDimension();
+    },
+  );
+
+  watch(
+    () => searchQuery.value.last_heartbeat_time,
+    () => {
       loadChartData();
     },
   );
@@ -246,6 +262,25 @@
     } else {
       loadChartData();
     }
+  };
+
+  const handleSelectDownDimension = (dimension: string) => {
+    selectedDownDimension.value = dimension;
+    handleSelecteDimension();
+  };
+
+  const handleToggleChartShowType = (type: string) => {
+    chartShowType.value = type;
+    handleSelecteDimension();
+  };
+
+  const handleSelecteDimension = () => {
+    emits('select', {
+      primaryDimension: props.primaryDimension,
+      minorDimension: selectedDimension.value,
+      drillDownDimension: selectedDownDimension.value,
+      isStack: chartShowType.value === 'pile',
+    });
   };
 </script>
 

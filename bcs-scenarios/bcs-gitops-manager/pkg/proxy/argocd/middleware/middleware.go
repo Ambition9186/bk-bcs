@@ -164,7 +164,11 @@ func (p *httpWrapper) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		p.monitorSession.ServeHTTP(rw, req)
 	case returnError:
 		if resp.statusCode >= 500 {
-			blog.Errorf("RequestID[%s] handler return code '%d': %s", requestID, resp.statusCode, resp.err.Error())
+			if utils.IsContextCanceled(resp.err) {
+				blog.Warnf("RequestID[%s] handler return code '%d': %s", requestID, resp.statusCode, resp.err.Error())
+			} else {
+				blog.Errorf("RequestID[%s] handler return code '%d': %s", requestID, resp.statusCode, resp.err.Error())
+			}
 		}
 		http.Error(rw, resp.err.Error(), resp.statusCode)
 	case returnGrpcError:
@@ -203,7 +207,10 @@ const (
 	reverseArgoStream
 	// reverseTerraform 请求反向代理给 terraform 服务
 	reverseTerraform
+	// reverseAnalysis proxy to analysis
 	reverseAnalysis
+	// reverseWorkflow proxy to workflow
+	reverseWorkflow
 )
 
 // ReturnArgoStreamReverse will reverse stream to argocd
@@ -217,6 +224,13 @@ func ReturnArgoStreamReverse() *HttpResponse {
 func ReturnTerraformReverse() *HttpResponse {
 	return &HttpResponse{
 		respType: reverseTerraform,
+	}
+}
+
+// ReturnWorkflowReverse reverse to workflow controller
+func ReturnWorkflowReverse() *HttpResponse {
+	return &HttpResponse{
+		respType: reverseWorkflow,
 	}
 }
 
