@@ -1867,10 +1867,12 @@ type BatchUpsertConfigItemsReq struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	BizId      uint32                                  `protobuf:"varint,1,opt,name=biz_id,json=bizId,proto3" json:"biz_id,omitempty"`
-	AppId      uint32                                  `protobuf:"varint,2,opt,name=app_id,json=appId,proto3" json:"app_id,omitempty"`
-	Items      []*BatchUpsertConfigItemsReq_ConfigItem `protobuf:"bytes,3,rep,name=items,proto3" json:"items,omitempty"`
-	ReplaceAll bool                                    `protobuf:"varint,4,opt,name=replace_all,json=replaceAll,proto3" json:"replace_all,omitempty"`
+	BizId      uint32                                       `protobuf:"varint,1,opt,name=biz_id,json=bizId,proto3" json:"biz_id,omitempty"`
+	AppId      uint32                                       `protobuf:"varint,2,opt,name=app_id,json=appId,proto3" json:"app_id,omitempty"`
+	Items      []*BatchUpsertConfigItemsReq_ConfigItem      `protobuf:"bytes,3,rep,name=items,proto3" json:"items,omitempty"`
+	ReplaceAll bool                                         `protobuf:"varint,4,opt,name=replace_all,json=replaceAll,proto3" json:"replace_all,omitempty"`
+	Variables  []*template_variable.TemplateVariableSpec    `protobuf:"bytes,5,rep,name=variables,proto3" json:"variables,omitempty"`
+	Bindings   []*BatchUpsertConfigItemsReq_TemplateBinding `protobuf:"bytes,6,rep,name=bindings,proto3" json:"bindings,omitempty"`
 }
 
 func (x *BatchUpsertConfigItemsReq) Reset() {
@@ -1931,6 +1933,20 @@ func (x *BatchUpsertConfigItemsReq) GetReplaceAll() bool {
 		return x.ReplaceAll
 	}
 	return false
+}
+
+func (x *BatchUpsertConfigItemsReq) GetVariables() []*template_variable.TemplateVariableSpec {
+	if x != nil {
+		return x.Variables
+	}
+	return nil
+}
+
+func (x *BatchUpsertConfigItemsReq) GetBindings() []*BatchUpsertConfigItemsReq_TemplateBinding {
+	if x != nil {
+		return x.Bindings
+	}
+	return nil
 }
 
 type BatchUpsertConfigItemsResp struct {
@@ -15132,10 +15148,9 @@ type BatchUpsertConfigItemsReq_ConfigItem struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	ConfigItemAttachment *config_item.ConfigItemAttachment         `protobuf:"bytes,1,opt,name=config_item_attachment,json=configItemAttachment,proto3" json:"config_item_attachment,omitempty"`
-	ConfigItemSpec       *config_item.ConfigItemSpec               `protobuf:"bytes,2,opt,name=config_item_spec,json=configItemSpec,proto3" json:"config_item_spec,omitempty"`
-	ContentSpec          *content.ContentSpec                      `protobuf:"bytes,3,opt,name=content_spec,json=contentSpec,proto3" json:"content_spec,omitempty"`
-	Variables            []*template_variable.TemplateVariableSpec `protobuf:"bytes,4,rep,name=variables,proto3" json:"variables,omitempty"`
+	ConfigItemAttachment *config_item.ConfigItemAttachment `protobuf:"bytes,1,opt,name=config_item_attachment,json=configItemAttachment,proto3" json:"config_item_attachment,omitempty"`
+	ConfigItemSpec       *config_item.ConfigItemSpec       `protobuf:"bytes,2,opt,name=config_item_spec,json=configItemSpec,proto3" json:"config_item_spec,omitempty"`
+	ContentSpec          *content.ContentSpec              `protobuf:"bytes,3,opt,name=content_spec,json=contentSpec,proto3" json:"content_spec,omitempty"`
 }
 
 func (x *BatchUpsertConfigItemsReq_ConfigItem) Reset() {
@@ -15191,9 +15206,57 @@ func (x *BatchUpsertConfigItemsReq_ConfigItem) GetContentSpec() *content.Content
 	return nil
 }
 
-func (x *BatchUpsertConfigItemsReq_ConfigItem) GetVariables() []*template_variable.TemplateVariableSpec {
+type BatchUpsertConfigItemsReq_TemplateBinding struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	TemplateSpaceId uint32                                `protobuf:"varint,1,opt,name=template_space_id,json=templateSpaceId,proto3" json:"template_space_id,omitempty"`
+	TemplateBinding *app_template_binding.TemplateBinding `protobuf:"bytes,2,opt,name=template_binding,json=templateBinding,proto3" json:"template_binding,omitempty"`
+}
+
+func (x *BatchUpsertConfigItemsReq_TemplateBinding) Reset() {
+	*x = BatchUpsertConfigItemsReq_TemplateBinding{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_data_service_proto_msgTypes[240]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *BatchUpsertConfigItemsReq_TemplateBinding) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BatchUpsertConfigItemsReq_TemplateBinding) ProtoMessage() {}
+
+func (x *BatchUpsertConfigItemsReq_TemplateBinding) ProtoReflect() protoreflect.Message {
+	mi := &file_data_service_proto_msgTypes[240]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BatchUpsertConfigItemsReq_TemplateBinding.ProtoReflect.Descriptor instead.
+func (*BatchUpsertConfigItemsReq_TemplateBinding) Descriptor() ([]byte, []int) {
+	return file_data_service_proto_rawDescGZIP(), []int{31, 1}
+}
+
+func (x *BatchUpsertConfigItemsReq_TemplateBinding) GetTemplateSpaceId() uint32 {
 	if x != nil {
-		return x.Variables
+		return x.TemplateSpaceId
+	}
+	return 0
+}
+
+func (x *BatchUpsertConfigItemsReq_TemplateBinding) GetTemplateBinding() *app_template_binding.TemplateBinding {
+	if x != nil {
+		return x.TemplateBinding
 	}
 	return nil
 }
@@ -15212,7 +15275,7 @@ type ListConfigItemByTupleReq_Item struct {
 func (x *ListConfigItemByTupleReq_Item) Reset() {
 	*x = ListConfigItemByTupleReq_Item{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_data_service_proto_msgTypes[240]
+		mi := &file_data_service_proto_msgTypes[241]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15225,7 +15288,7 @@ func (x *ListConfigItemByTupleReq_Item) String() string {
 func (*ListConfigItemByTupleReq_Item) ProtoMessage() {}
 
 func (x *ListConfigItemByTupleReq_Item) ProtoReflect() protoreflect.Message {
-	mi := &file_data_service_proto_msgTypes[240]
+	mi := &file_data_service_proto_msgTypes[241]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15280,7 +15343,7 @@ type GetHookInfoSpec_Releases struct {
 func (x *GetHookInfoSpec_Releases) Reset() {
 	*x = GetHookInfoSpec_Releases{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_data_service_proto_msgTypes[241]
+		mi := &file_data_service_proto_msgTypes[242]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15293,7 +15356,7 @@ func (x *GetHookInfoSpec_Releases) String() string {
 func (*GetHookInfoSpec_Releases) ProtoMessage() {}
 
 func (x *GetHookInfoSpec_Releases) ProtoReflect() protoreflect.Message {
-	mi := &file_data_service_proto_msgTypes[241]
+	mi := &file_data_service_proto_msgTypes[242]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15330,7 +15393,7 @@ type ListHooksResp_Detail struct {
 func (x *ListHooksResp_Detail) Reset() {
 	*x = ListHooksResp_Detail{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_data_service_proto_msgTypes[242]
+		mi := &file_data_service_proto_msgTypes[243]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15343,7 +15406,7 @@ func (x *ListHooksResp_Detail) String() string {
 func (*ListHooksResp_Detail) ProtoMessage() {}
 
 func (x *ListHooksResp_Detail) ProtoReflect() protoreflect.Message {
-	mi := &file_data_service_proto_msgTypes[242]
+	mi := &file_data_service_proto_msgTypes[243]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15405,7 +15468,7 @@ type ListHookReferencesResp_Detail struct {
 func (x *ListHookReferencesResp_Detail) Reset() {
 	*x = ListHookReferencesResp_Detail{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_data_service_proto_msgTypes[243]
+		mi := &file_data_service_proto_msgTypes[244]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15418,7 +15481,7 @@ func (x *ListHookReferencesResp_Detail) String() string {
 func (*ListHookReferencesResp_Detail) ProtoMessage() {}
 
 func (x *ListHookReferencesResp_Detail) ProtoReflect() protoreflect.Message {
-	mi := &file_data_service_proto_msgTypes[243]
+	mi := &file_data_service_proto_msgTypes[244]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15503,7 +15566,7 @@ type ListHookRevisionsResp_ListHookRevisionsData struct {
 func (x *ListHookRevisionsResp_ListHookRevisionsData) Reset() {
 	*x = ListHookRevisionsResp_ListHookRevisionsData{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_data_service_proto_msgTypes[244]
+		mi := &file_data_service_proto_msgTypes[245]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15516,7 +15579,7 @@ func (x *ListHookRevisionsResp_ListHookRevisionsData) String() string {
 func (*ListHookRevisionsResp_ListHookRevisionsData) ProtoMessage() {}
 
 func (x *ListHookRevisionsResp_ListHookRevisionsData) ProtoReflect() protoreflect.Message {
-	mi := &file_data_service_proto_msgTypes[244]
+	mi := &file_data_service_proto_msgTypes[245]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15571,7 +15634,7 @@ type ListHookRevisionReferencesResp_Detail struct {
 func (x *ListHookRevisionReferencesResp_Detail) Reset() {
 	*x = ListHookRevisionReferencesResp_Detail{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_data_service_proto_msgTypes[245]
+		mi := &file_data_service_proto_msgTypes[246]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15584,7 +15647,7 @@ func (x *ListHookRevisionReferencesResp_Detail) String() string {
 func (*ListHookRevisionReferencesResp_Detail) ProtoMessage() {}
 
 func (x *ListHookRevisionReferencesResp_Detail) ProtoReflect() protoreflect.Message {
-	mi := &file_data_service_proto_msgTypes[245]
+	mi := &file_data_service_proto_msgTypes[246]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15673,7 +15736,7 @@ type GetReleaseHookResp_Hook struct {
 func (x *GetReleaseHookResp_Hook) Reset() {
 	*x = GetReleaseHookResp_Hook{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_data_service_proto_msgTypes[246]
+		mi := &file_data_service_proto_msgTypes[247]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15686,7 +15749,7 @@ func (x *GetReleaseHookResp_Hook) String() string {
 func (*GetReleaseHookResp_Hook) ProtoMessage() {}
 
 func (x *GetReleaseHookResp_Hook) ProtoReflect() protoreflect.Message {
-	mi := &file_data_service_proto_msgTypes[246]
+	mi := &file_data_service_proto_msgTypes[247]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15765,7 +15828,7 @@ type ListTemplateByTupleReq_Item struct {
 func (x *ListTemplateByTupleReq_Item) Reset() {
 	*x = ListTemplateByTupleReq_Item{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_data_service_proto_msgTypes[247]
+		mi := &file_data_service_proto_msgTypes[248]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15778,7 +15841,7 @@ func (x *ListTemplateByTupleReq_Item) String() string {
 func (*ListTemplateByTupleReq_Item) ProtoMessage() {}
 
 func (x *ListTemplateByTupleReq_Item) ProtoReflect() protoreflect.Message {
-	mi := &file_data_service_proto_msgTypes[247]
+	mi := &file_data_service_proto_msgTypes[248]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15834,7 +15897,7 @@ type ListTemplateByTupleReqResp_Item struct {
 func (x *ListTemplateByTupleReqResp_Item) Reset() {
 	*x = ListTemplateByTupleReqResp_Item{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_data_service_proto_msgTypes[248]
+		mi := &file_data_service_proto_msgTypes[249]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15847,7 +15910,7 @@ func (x *ListTemplateByTupleReqResp_Item) String() string {
 func (*ListTemplateByTupleReqResp_Item) ProtoMessage() {}
 
 func (x *ListTemplateByTupleReqResp_Item) ProtoReflect() protoreflect.Message {
-	mi := &file_data_service_proto_msgTypes[248]
+	mi := &file_data_service_proto_msgTypes[249]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15889,7 +15952,7 @@ type BatchUpsertTemplatesReq_Item struct {
 func (x *BatchUpsertTemplatesReq_Item) Reset() {
 	*x = BatchUpsertTemplatesReq_Item{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_data_service_proto_msgTypes[249]
+		mi := &file_data_service_proto_msgTypes[250]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15902,7 +15965,7 @@ func (x *BatchUpsertTemplatesReq_Item) String() string {
 func (*BatchUpsertTemplatesReq_Item) ProtoMessage() {}
 
 func (x *BatchUpsertTemplatesReq_Item) ProtoReflect() protoreflect.Message {
-	mi := &file_data_service_proto_msgTypes[249]
+	mi := &file_data_service_proto_msgTypes[250]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -15949,7 +16012,7 @@ type ListAppGroupsResp_ListAppGroupsData struct {
 func (x *ListAppGroupsResp_ListAppGroupsData) Reset() {
 	*x = ListAppGroupsResp_ListAppGroupsData{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_data_service_proto_msgTypes[250]
+		mi := &file_data_service_proto_msgTypes[251]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -15962,7 +16025,7 @@ func (x *ListAppGroupsResp_ListAppGroupsData) String() string {
 func (*ListAppGroupsResp_ListAppGroupsData) ProtoMessage() {}
 
 func (x *ListAppGroupsResp_ListAppGroupsData) ProtoReflect() protoreflect.Message {
-	mi := &file_data_service_proto_msgTypes[250]
+	mi := &file_data_service_proto_msgTypes[251]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16040,7 +16103,7 @@ type CountGroupsReleasedAppsResp_CountGroupsReleasedAppsData struct {
 func (x *CountGroupsReleasedAppsResp_CountGroupsReleasedAppsData) Reset() {
 	*x = CountGroupsReleasedAppsResp_CountGroupsReleasedAppsData{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_data_service_proto_msgTypes[251]
+		mi := &file_data_service_proto_msgTypes[252]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -16053,7 +16116,7 @@ func (x *CountGroupsReleasedAppsResp_CountGroupsReleasedAppsData) String() strin
 func (*CountGroupsReleasedAppsResp_CountGroupsReleasedAppsData) ProtoMessage() {}
 
 func (x *CountGroupsReleasedAppsResp_CountGroupsReleasedAppsData) ProtoReflect() protoreflect.Message {
-	mi := &file_data_service_proto_msgTypes[251]
+	mi := &file_data_service_proto_msgTypes[252]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16105,7 +16168,7 @@ type ListGroupReleasedAppsResp_ListGroupReleasedAppsData struct {
 func (x *ListGroupReleasedAppsResp_ListGroupReleasedAppsData) Reset() {
 	*x = ListGroupReleasedAppsResp_ListGroupReleasedAppsData{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_data_service_proto_msgTypes[252]
+		mi := &file_data_service_proto_msgTypes[253]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -16118,7 +16181,7 @@ func (x *ListGroupReleasedAppsResp_ListGroupReleasedAppsData) String() string {
 func (*ListGroupReleasedAppsResp_ListGroupReleasedAppsData) ProtoMessage() {}
 
 func (x *ListGroupReleasedAppsResp_ListGroupReleasedAppsData) ProtoReflect() protoreflect.Message {
-	mi := &file_data_service_proto_msgTypes[252]
+	mi := &file_data_service_proto_msgTypes[253]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16181,7 +16244,7 @@ type BatchUpsertKvsReq_Kv struct {
 func (x *BatchUpsertKvsReq_Kv) Reset() {
 	*x = BatchUpsertKvsReq_Kv{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_data_service_proto_msgTypes[253]
+		mi := &file_data_service_proto_msgTypes[254]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -16194,7 +16257,7 @@ func (x *BatchUpsertKvsReq_Kv) String() string {
 func (*BatchUpsertKvsReq_Kv) ProtoMessage() {}
 
 func (x *BatchUpsertKvsReq_Kv) ProtoReflect() protoreflect.Message {
-	mi := &file_data_service_proto_msgTypes[253]
+	mi := &file_data_service_proto_msgTypes[254]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16236,7 +16299,7 @@ type ListClientsReq_Order struct {
 func (x *ListClientsReq_Order) Reset() {
 	*x = ListClientsReq_Order{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_data_service_proto_msgTypes[254]
+		mi := &file_data_service_proto_msgTypes[255]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -16249,7 +16312,7 @@ func (x *ListClientsReq_Order) String() string {
 func (*ListClientsReq_Order) ProtoMessage() {}
 
 func (x *ListClientsReq_Order) ProtoReflect() protoreflect.Message {
-	mi := &file_data_service_proto_msgTypes[254]
+	mi := &file_data_service_proto_msgTypes[255]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16294,7 +16357,7 @@ type ListClientsResp_Item struct {
 func (x *ListClientsResp_Item) Reset() {
 	*x = ListClientsResp_Item{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_data_service_proto_msgTypes[255]
+		mi := &file_data_service_proto_msgTypes[256]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -16307,7 +16370,7 @@ func (x *ListClientsResp_Item) String() string {
 func (*ListClientsResp_Item) ProtoMessage() {}
 
 func (x *ListClientsResp_Item) ProtoReflect() protoreflect.Message {
-	mi := &file_data_service_proto_msgTypes[255]
+	mi := &file_data_service_proto_msgTypes[256]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16370,7 +16433,7 @@ type ListClientEventsReq_Order struct {
 func (x *ListClientEventsReq_Order) Reset() {
 	*x = ListClientEventsReq_Order{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_data_service_proto_msgTypes[256]
+		mi := &file_data_service_proto_msgTypes[257]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -16383,7 +16446,7 @@ func (x *ListClientEventsReq_Order) String() string {
 func (*ListClientEventsReq_Order) ProtoMessage() {}
 
 func (x *ListClientEventsReq_Order) ProtoReflect() protoreflect.Message {
-	mi := &file_data_service_proto_msgTypes[256]
+	mi := &file_data_service_proto_msgTypes[257]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -16697,7 +16760,7 @@ var file_data_service_proto_rawDesc = []byte{
 	0x39, 0x0a, 0x0c, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x5f, 0x73, 0x70, 0x65, 0x63, 0x18,
 	0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x16, 0x2e, 0x70, 0x62, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e,
 	0x74, 0x2e, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x53, 0x70, 0x65, 0x63, 0x52, 0x0b, 0x63,
-	0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x53, 0x70, 0x65, 0x63, 0x22, 0xc2, 0x03, 0x0a, 0x19, 0x42,
+	0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x53, 0x70, 0x65, 0x63, 0x22, 0x92, 0x05, 0x0a, 0x19, 0x42,
 	0x61, 0x74, 0x63, 0x68, 0x55, 0x70, 0x73, 0x65, 0x72, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67,
 	0x49, 0x74, 0x65, 0x6d, 0x73, 0x52, 0x65, 0x71, 0x12, 0x15, 0x0a, 0x06, 0x62, 0x69, 0x7a, 0x5f,
 	0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x05, 0x62, 0x69, 0x7a, 0x49, 0x64, 0x12,
@@ -16708,24 +16771,37 @@ var file_data_service_proto_rawDesc = []byte{
 	0x65, 0x6d, 0x73, 0x52, 0x65, 0x71, 0x2e, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x49, 0x74, 0x65,
 	0x6d, 0x52, 0x05, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x12, 0x1f, 0x0a, 0x0b, 0x72, 0x65, 0x70, 0x6c,
 	0x61, 0x63, 0x65, 0x5f, 0x61, 0x6c, 0x6c, 0x18, 0x04, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0a, 0x72,
-	0x65, 0x70, 0x6c, 0x61, 0x63, 0x65, 0x41, 0x6c, 0x6c, 0x1a, 0x93, 0x02, 0x0a, 0x0a, 0x43, 0x6f,
-	0x6e, 0x66, 0x69, 0x67, 0x49, 0x74, 0x65, 0x6d, 0x12, 0x50, 0x0a, 0x16, 0x63, 0x6f, 0x6e, 0x66,
-	0x69, 0x67, 0x5f, 0x69, 0x74, 0x65, 0x6d, 0x5f, 0x61, 0x74, 0x74, 0x61, 0x63, 0x68, 0x6d, 0x65,
-	0x6e, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x70, 0x62, 0x63, 0x69, 0x2e,
-	0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x49, 0x74, 0x65, 0x6d, 0x41, 0x74, 0x74, 0x61, 0x63, 0x68,
-	0x6d, 0x65, 0x6e, 0x74, 0x52, 0x14, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x49, 0x74, 0x65, 0x6d,
-	0x41, 0x74, 0x74, 0x61, 0x63, 0x68, 0x6d, 0x65, 0x6e, 0x74, 0x12, 0x3e, 0x0a, 0x10, 0x63, 0x6f,
-	0x6e, 0x66, 0x69, 0x67, 0x5f, 0x69, 0x74, 0x65, 0x6d, 0x5f, 0x73, 0x70, 0x65, 0x63, 0x18, 0x02,
-	0x20, 0x01, 0x28, 0x0b, 0x32, 0x14, 0x2e, 0x70, 0x62, 0x63, 0x69, 0x2e, 0x43, 0x6f, 0x6e, 0x66,
-	0x69, 0x67, 0x49, 0x74, 0x65, 0x6d, 0x53, 0x70, 0x65, 0x63, 0x52, 0x0e, 0x63, 0x6f, 0x6e, 0x66,
-	0x69, 0x67, 0x49, 0x74, 0x65, 0x6d, 0x53, 0x70, 0x65, 0x63, 0x12, 0x39, 0x0a, 0x0c, 0x63, 0x6f,
-	0x6e, 0x74, 0x65, 0x6e, 0x74, 0x5f, 0x73, 0x70, 0x65, 0x63, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x16, 0x2e, 0x70, 0x62, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x2e, 0x43, 0x6f, 0x6e,
-	0x74, 0x65, 0x6e, 0x74, 0x53, 0x70, 0x65, 0x63, 0x52, 0x0b, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e,
-	0x74, 0x53, 0x70, 0x65, 0x63, 0x12, 0x38, 0x0a, 0x09, 0x76, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c,
-	0x65, 0x73, 0x18, 0x04, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x70, 0x62, 0x74, 0x76, 0x2e,
-	0x54, 0x65, 0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65, 0x56, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65,
-	0x53, 0x70, 0x65, 0x63, 0x52, 0x09, 0x76, 0x61, 0x72, 0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x22,
+	0x65, 0x70, 0x6c, 0x61, 0x63, 0x65, 0x41, 0x6c, 0x6c, 0x12, 0x38, 0x0a, 0x09, 0x76, 0x61, 0x72,
+	0x69, 0x61, 0x62, 0x6c, 0x65, 0x73, 0x18, 0x05, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x70,
+	0x62, 0x74, 0x76, 0x2e, 0x54, 0x65, 0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65, 0x56, 0x61, 0x72, 0x69,
+	0x61, 0x62, 0x6c, 0x65, 0x53, 0x70, 0x65, 0x63, 0x52, 0x09, 0x76, 0x61, 0x72, 0x69, 0x61, 0x62,
+	0x6c, 0x65, 0x73, 0x12, 0x4b, 0x0a, 0x08, 0x62, 0x69, 0x6e, 0x64, 0x69, 0x6e, 0x67, 0x73, 0x18,
+	0x06, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x2f, 0x2e, 0x70, 0x62, 0x64, 0x73, 0x2e, 0x42, 0x61, 0x74,
+	0x63, 0x68, 0x55, 0x70, 0x73, 0x65, 0x72, 0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x49, 0x74,
+	0x65, 0x6d, 0x73, 0x52, 0x65, 0x71, 0x2e, 0x54, 0x65, 0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65, 0x42,
+	0x69, 0x6e, 0x64, 0x69, 0x6e, 0x67, 0x52, 0x08, 0x62, 0x69, 0x6e, 0x64, 0x69, 0x6e, 0x67, 0x73,
+	0x1a, 0xd9, 0x01, 0x0a, 0x0a, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x49, 0x74, 0x65, 0x6d, 0x12,
+	0x50, 0x0a, 0x16, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x5f, 0x69, 0x74, 0x65, 0x6d, 0x5f, 0x61,
+	0x74, 0x74, 0x61, 0x63, 0x68, 0x6d, 0x65, 0x6e, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x1a, 0x2e, 0x70, 0x62, 0x63, 0x69, 0x2e, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x49, 0x74, 0x65,
+	0x6d, 0x41, 0x74, 0x74, 0x61, 0x63, 0x68, 0x6d, 0x65, 0x6e, 0x74, 0x52, 0x14, 0x63, 0x6f, 0x6e,
+	0x66, 0x69, 0x67, 0x49, 0x74, 0x65, 0x6d, 0x41, 0x74, 0x74, 0x61, 0x63, 0x68, 0x6d, 0x65, 0x6e,
+	0x74, 0x12, 0x3e, 0x0a, 0x10, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x5f, 0x69, 0x74, 0x65, 0x6d,
+	0x5f, 0x73, 0x70, 0x65, 0x63, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x14, 0x2e, 0x70, 0x62,
+	0x63, 0x69, 0x2e, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x49, 0x74, 0x65, 0x6d, 0x53, 0x70, 0x65,
+	0x63, 0x52, 0x0e, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x49, 0x74, 0x65, 0x6d, 0x53, 0x70, 0x65,
+	0x63, 0x12, 0x39, 0x0a, 0x0c, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x5f, 0x73, 0x70, 0x65,
+	0x63, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x16, 0x2e, 0x70, 0x62, 0x63, 0x6f, 0x6e, 0x74,
+	0x65, 0x6e, 0x74, 0x2e, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x53, 0x70, 0x65, 0x63, 0x52,
+	0x0b, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x53, 0x70, 0x65, 0x63, 0x1a, 0x80, 0x01, 0x0a,
+	0x0f, 0x54, 0x65, 0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65, 0x42, 0x69, 0x6e, 0x64, 0x69, 0x6e, 0x67,
+	0x12, 0x2a, 0x0a, 0x11, 0x74, 0x65, 0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65, 0x5f, 0x73, 0x70, 0x61,
+	0x63, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x0f, 0x74, 0x65, 0x6d,
+	0x70, 0x6c, 0x61, 0x74, 0x65, 0x53, 0x70, 0x61, 0x63, 0x65, 0x49, 0x64, 0x12, 0x41, 0x0a, 0x10,
+	0x74, 0x65, 0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65, 0x5f, 0x62, 0x69, 0x6e, 0x64, 0x69, 0x6e, 0x67,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x16, 0x2e, 0x70, 0x62, 0x61, 0x74, 0x62, 0x2e, 0x54,
+	0x65, 0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65, 0x42, 0x69, 0x6e, 0x64, 0x69, 0x6e, 0x67, 0x52, 0x0f,
+	0x74, 0x65, 0x6d, 0x70, 0x6c, 0x61, 0x74, 0x65, 0x42, 0x69, 0x6e, 0x64, 0x69, 0x6e, 0x67, 0x22,
 	0x2e, 0x0a, 0x1a, 0x42, 0x61, 0x74, 0x63, 0x68, 0x55, 0x70, 0x73, 0x65, 0x72, 0x74, 0x43, 0x6f,
 	0x6e, 0x66, 0x69, 0x67, 0x49, 0x74, 0x65, 0x6d, 0x73, 0x52, 0x65, 0x73, 0x70, 0x12, 0x10, 0x0a,
 	0x03, 0x69, 0x64, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0d, 0x52, 0x03, 0x69, 0x64, 0x73, 0x22,
@@ -19321,7 +19397,7 @@ func file_data_service_proto_rawDescGZIP() []byte {
 	return file_data_service_proto_rawDescData
 }
 
-var file_data_service_proto_msgTypes = make([]protoimpl.MessageInfo, 257)
+var file_data_service_proto_msgTypes = make([]protoimpl.MessageInfo, 258)
 var file_data_service_proto_goTypes = []interface{}{
 	(*UpdateCredentialScopesReq)(nil),                                       // 0: pbds.UpdateCredentialScopesReq
 	(*UpdateCredentialScopesResp)(nil),                                      // 1: pbds.UpdateCredentialScopesResp
@@ -19563,614 +19639,618 @@ var file_data_service_proto_goTypes = []interface{}{
 	(*ListClientLabelAndAnnotationReq)(nil),                                 // 237: pbds.ListClientLabelAndAnnotationReq
 	(*CredentialScopePreviewResp_Detail)(nil),                               // 238: pbds.CredentialScopePreviewResp.Detail
 	(*BatchUpsertConfigItemsReq_ConfigItem)(nil),                            // 239: pbds.BatchUpsertConfigItemsReq.ConfigItem
-	(*ListConfigItemByTupleReq_Item)(nil),                                   // 240: pbds.ListConfigItemByTupleReq.Item
-	(*GetHookInfoSpec_Releases)(nil),                                        // 241: pbds.GetHookInfoSpec.Releases
-	(*ListHooksResp_Detail)(nil),                                            // 242: pbds.ListHooksResp.Detail
-	(*ListHookReferencesResp_Detail)(nil),                                   // 243: pbds.ListHookReferencesResp.Detail
-	(*ListHookRevisionsResp_ListHookRevisionsData)(nil),                     // 244: pbds.ListHookRevisionsResp.ListHookRevisionsData
-	(*ListHookRevisionReferencesResp_Detail)(nil),                           // 245: pbds.ListHookRevisionReferencesResp.Detail
-	(*GetReleaseHookResp_Hook)(nil),                                         // 246: pbds.GetReleaseHookResp.Hook
-	(*ListTemplateByTupleReq_Item)(nil),                                     // 247: pbds.ListTemplateByTupleReq.Item
-	(*ListTemplateByTupleReqResp_Item)(nil),                                 // 248: pbds.ListTemplateByTupleReqResp.Item
-	(*BatchUpsertTemplatesReq_Item)(nil),                                    // 249: pbds.BatchUpsertTemplatesReq.Item
-	(*ListAppGroupsResp_ListAppGroupsData)(nil),                             // 250: pbds.ListAppGroupsResp.ListAppGroupsData
-	(*CountGroupsReleasedAppsResp_CountGroupsReleasedAppsData)(nil),         // 251: pbds.CountGroupsReleasedAppsResp.CountGroupsReleasedAppsData
-	(*ListGroupReleasedAppsResp_ListGroupReleasedAppsData)(nil),             // 252: pbds.ListGroupReleasedAppsResp.ListGroupReleasedAppsData
-	(*BatchUpsertKvsReq_Kv)(nil),                                            // 253: pbds.BatchUpsertKvsReq.Kv
-	(*ListClientsReq_Order)(nil),                                            // 254: pbds.ListClientsReq.Order
-	(*ListClientsResp_Item)(nil),                                            // 255: pbds.ListClientsResp.Item
-	(*ListClientEventsReq_Order)(nil),                                       // 256: pbds.ListClientEventsReq.Order
-	(*credential_scope.CredentialScopeSpec)(nil),                            // 257: pbcrs.CredentialScopeSpec
-	(*credential_scope.UpdateScopeSpec)(nil),                                // 258: pbcrs.UpdateScopeSpec
-	(*credential_scope.CredentialScopeAttachment)(nil),                      // 259: pbcrs.CredentialScopeAttachment
-	(*credential_scope.CredentialScopeList)(nil),                            // 260: pbcrs.CredentialScopeList
-	(*credential.CredentialAttachment)(nil),                                 // 261: pbcredential.CredentialAttachment
-	(*credential.CredentialSpec)(nil),                                       // 262: pbcredential.CredentialSpec
-	(*credential.CredentialList)(nil),                                       // 263: pbcredential.CredentialList
-	(*app.AppSpec)(nil),                                                     // 264: pbapp.AppSpec
-	(*app.App)(nil),                                                         // 265: pbapp.App
-	(*config_item.ConfigItemAttachment)(nil),                                // 266: pbci.ConfigItemAttachment
-	(*config_item.ConfigItemSpec)(nil),                                      // 267: pbci.ConfigItemSpec
-	(*content.ContentSpec)(nil),                                             // 268: pbcontent.ContentSpec
-	(*config_item.ConfigItem)(nil),                                          // 269: pbci.ConfigItem
-	(*released_ci.ReleasedConfigItem)(nil),                                  // 270: pbrci.ReleasedConfigItem
-	(*config_item.ListConfigItemCounts)(nil),                                // 271: pbci.ListConfigItemCounts
-	(*content.ContentAttachment)(nil),                                       // 272: pbcontent.ContentAttachment
-	(*commit.CommitAttachment)(nil),                                         // 273: pbcommit.CommitAttachment
-	(*release.ReleaseAttachment)(nil),                                       // 274: pbrelease.ReleaseAttachment
-	(*release.ReleaseSpec)(nil),                                             // 275: pbrelease.ReleaseSpec
-	(*template_variable.TemplateVariableSpec)(nil),                          // 276: pbtv.TemplateVariableSpec
-	(*release.Release)(nil),                                                 // 277: pbrelease.Release
-	(*released_kv.ReleasedKv)(nil),                                          // 278: pbrkv.ReleasedKv
-	(*hook.HookAttachment)(nil),                                             // 279: pbhook.HookAttachment
-	(*hook.HookSpec)(nil),                                                   // 280: pbhook.HookSpec
-	(*base.Revision)(nil),                                                   // 281: pbbase.Revision
-	(*hook.CountHookTags)(nil),                                              // 282: pbhook.CountHookTags
-	(*hook_revision.HookRevisionAttachment)(nil),                            // 283: pbhr.HookRevisionAttachment
-	(*hook_revision.HookRevisionSpec)(nil),                                  // 284: pbhr.HookRevisionSpec
-	(*template_space.TemplateSpaceAttachment)(nil),                          // 285: pbts.TemplateSpaceAttachment
-	(*template_space.TemplateSpaceSpec)(nil),                                // 286: pbts.TemplateSpaceSpec
-	(*template_space.TemplateSpace)(nil),                                    // 287: pbts.TemplateSpace
-	(*template.TemplateAttachment)(nil),                                     // 288: pbtemplate.TemplateAttachment
-	(*template.TemplateSpec)(nil),                                           // 289: pbtemplate.TemplateSpec
-	(*template_revision.TemplateRevisionSpec)(nil),                          // 290: pbtr.TemplateRevisionSpec
-	(*template.Template)(nil),                                               // 291: pbtemplate.Template
-	(*template_revision.TemplateRevisionAttachment)(nil),                    // 292: pbtr.TemplateRevisionAttachment
-	(*template_revision.TemplateRevision)(nil),                              // 293: pbtr.TemplateRevision
-	(*template_revision.TemplateRevisionNamesDetail)(nil),                   // 294: pbtr.TemplateRevisionNamesDetail
-	(*template_set.TemplateSetAttachment)(nil),                              // 295: pbtset.TemplateSetAttachment
-	(*template_set.TemplateSetSpec)(nil),                                    // 296: pbtset.TemplateSetSpec
-	(*template_set.TemplateSet)(nil),                                        // 297: pbtset.TemplateSet
-	(*template_set.TemplateSetBriefInfo)(nil),                               // 298: pbtset.TemplateSetBriefInfo
-	(*template_set.TemplateSetOfBizDetail)(nil),                             // 299: pbtset.TemplateSetOfBizDetail
-	(*app_template_binding.AppTemplateBindingAttachment)(nil),               // 300: pbatb.AppTemplateBindingAttachment
-	(*app_template_binding.AppTemplateBindingSpec)(nil),                     // 301: pbatb.AppTemplateBindingSpec
-	(*app_template_binding.AppTemplateBinding)(nil),                         // 302: pbatb.AppTemplateBinding
-	(*app_template_binding.AppBoundTmplRevision)(nil),                       // 303: pbatb.AppBoundTmplRevision
-	(*app_template_binding.ReleasedAppBoundTmplRevision)(nil),               // 304: pbatb.ReleasedAppBoundTmplRevision
-	(*app_template_binding.Conflict)(nil),                                   // 305: pbatb.Conflict
-	(*app_template_variable.AppTemplateVariableReference)(nil),              // 306: pbatv.AppTemplateVariableReference
-	(*app_template_variable.AppTemplateVariableAttachment)(nil),             // 307: pbatv.AppTemplateVariableAttachment
-	(*app_template_variable.AppTemplateVariableSpec)(nil),                   // 308: pbatv.AppTemplateVariableSpec
-	(*template_binding_relation.TemplateBoundCounts)(nil),                   // 309: pbtbr.TemplateBoundCounts
-	(*template_binding_relation.TemplateRevisionBoundCounts)(nil),           // 310: pbtbr.TemplateRevisionBoundCounts
-	(*template_binding_relation.TemplateSetBoundCounts)(nil),                // 311: pbtbr.TemplateSetBoundCounts
-	(*template_binding_relation.TemplateBoundUnnamedAppDetail)(nil),         // 312: pbtbr.TemplateBoundUnnamedAppDetail
-	(*template_binding_relation.TemplateBoundNamedAppDetail)(nil),           // 313: pbtbr.TemplateBoundNamedAppDetail
-	(*template_binding_relation.TemplateBoundTemplateSetDetail)(nil),        // 314: pbtbr.TemplateBoundTemplateSetDetail
-	(*template_binding_relation.MultiTemplateBoundTemplateSetDetail)(nil),   // 315: pbtbr.MultiTemplateBoundTemplateSetDetail
-	(*template_binding_relation.TemplateRevisionBoundUnnamedAppDetail)(nil), // 316: pbtbr.TemplateRevisionBoundUnnamedAppDetail
-	(*template_binding_relation.TemplateRevisionBoundNamedAppDetail)(nil),   // 317: pbtbr.TemplateRevisionBoundNamedAppDetail
-	(*template_binding_relation.TemplateSetBoundUnnamedAppDetail)(nil),      // 318: pbtbr.TemplateSetBoundUnnamedAppDetail
-	(*template_binding_relation.MultiTemplateSetBoundUnnamedAppDetail)(nil), // 319: pbtbr.MultiTemplateSetBoundUnnamedAppDetail
-	(*template_binding_relation.TemplateSetBoundNamedAppDetail)(nil),        // 320: pbtbr.TemplateSetBoundNamedAppDetail
-	(*template_binding_relation.LatestTemplateBoundUnnamedAppDetail)(nil),   // 321: pbtbr.LatestTemplateBoundUnnamedAppDetail
-	(*template_variable.TemplateVariableAttachment)(nil),                    // 322: pbtv.TemplateVariableAttachment
-	(*template_variable.TemplateVariable)(nil),                              // 323: pbtv.TemplateVariable
-	(*group.GroupAttachment)(nil),                                           // 324: pbgroup.GroupAttachment
-	(*group.GroupSpec)(nil),                                                 // 325: pbgroup.GroupSpec
-	(*group.Group)(nil),                                                     // 326: pbgroup.Group
-	(*structpb.Struct)(nil),                                                 // 327: google.protobuf.Struct
-	(*base.BasePage)(nil),                                                   // 328: pbbase.BasePage
-	(*kv.KvAttachment)(nil),                                                 // 329: pbkv.KvAttachment
-	(*kv.KvSpec)(nil),                                                       // 330: pbkv.KvSpec
-	(*kv.Kv)(nil),                                                           // 331: pbkv.Kv
-	(*client.Client)(nil),                                                   // 332: pbclient.Client
-	(*client_event.ClientEvent)(nil),                                        // 333: pbce.ClientEvent
-	(*client.ClientQueryCondition)(nil),                                     // 334: pbclient.ClientQueryCondition
-	(*client_query.ClientQuery)(nil),                                        // 335: pbcq.ClientQuery
-	(*hook.Hook)(nil),                                                       // 336: pbhook.Hook
-	(*hook_revision.HookRevision)(nil),                                      // 337: pbhr.HookRevision
-	(*base.EmptyReq)(nil),                                                   // 338: pbbase.EmptyReq
-	(*client.ClientCommonReq)(nil),                                          // 339: pbclient.ClientCommonReq
-	(*base.EmptyResp)(nil),                                                  // 340: pbbase.EmptyResp
-	(*content.Content)(nil),                                                 // 341: pbcontent.Content
-	(*commit.Commit)(nil),                                                   // 342: pbcommit.Commit
+	(*BatchUpsertConfigItemsReq_TemplateBinding)(nil),                       // 240: pbds.BatchUpsertConfigItemsReq.TemplateBinding
+	(*ListConfigItemByTupleReq_Item)(nil),                                   // 241: pbds.ListConfigItemByTupleReq.Item
+	(*GetHookInfoSpec_Releases)(nil),                                        // 242: pbds.GetHookInfoSpec.Releases
+	(*ListHooksResp_Detail)(nil),                                            // 243: pbds.ListHooksResp.Detail
+	(*ListHookReferencesResp_Detail)(nil),                                   // 244: pbds.ListHookReferencesResp.Detail
+	(*ListHookRevisionsResp_ListHookRevisionsData)(nil),                     // 245: pbds.ListHookRevisionsResp.ListHookRevisionsData
+	(*ListHookRevisionReferencesResp_Detail)(nil),                           // 246: pbds.ListHookRevisionReferencesResp.Detail
+	(*GetReleaseHookResp_Hook)(nil),                                         // 247: pbds.GetReleaseHookResp.Hook
+	(*ListTemplateByTupleReq_Item)(nil),                                     // 248: pbds.ListTemplateByTupleReq.Item
+	(*ListTemplateByTupleReqResp_Item)(nil),                                 // 249: pbds.ListTemplateByTupleReqResp.Item
+	(*BatchUpsertTemplatesReq_Item)(nil),                                    // 250: pbds.BatchUpsertTemplatesReq.Item
+	(*ListAppGroupsResp_ListAppGroupsData)(nil),                             // 251: pbds.ListAppGroupsResp.ListAppGroupsData
+	(*CountGroupsReleasedAppsResp_CountGroupsReleasedAppsData)(nil),         // 252: pbds.CountGroupsReleasedAppsResp.CountGroupsReleasedAppsData
+	(*ListGroupReleasedAppsResp_ListGroupReleasedAppsData)(nil),             // 253: pbds.ListGroupReleasedAppsResp.ListGroupReleasedAppsData
+	(*BatchUpsertKvsReq_Kv)(nil),                                            // 254: pbds.BatchUpsertKvsReq.Kv
+	(*ListClientsReq_Order)(nil),                                            // 255: pbds.ListClientsReq.Order
+	(*ListClientsResp_Item)(nil),                                            // 256: pbds.ListClientsResp.Item
+	(*ListClientEventsReq_Order)(nil),                                       // 257: pbds.ListClientEventsReq.Order
+	(*credential_scope.CredentialScopeSpec)(nil),                            // 258: pbcrs.CredentialScopeSpec
+	(*credential_scope.UpdateScopeSpec)(nil),                                // 259: pbcrs.UpdateScopeSpec
+	(*credential_scope.CredentialScopeAttachment)(nil),                      // 260: pbcrs.CredentialScopeAttachment
+	(*credential_scope.CredentialScopeList)(nil),                            // 261: pbcrs.CredentialScopeList
+	(*credential.CredentialAttachment)(nil),                                 // 262: pbcredential.CredentialAttachment
+	(*credential.CredentialSpec)(nil),                                       // 263: pbcredential.CredentialSpec
+	(*credential.CredentialList)(nil),                                       // 264: pbcredential.CredentialList
+	(*app.AppSpec)(nil),                                                     // 265: pbapp.AppSpec
+	(*app.App)(nil),                                                         // 266: pbapp.App
+	(*config_item.ConfigItemAttachment)(nil),                                // 267: pbci.ConfigItemAttachment
+	(*config_item.ConfigItemSpec)(nil),                                      // 268: pbci.ConfigItemSpec
+	(*content.ContentSpec)(nil),                                             // 269: pbcontent.ContentSpec
+	(*template_variable.TemplateVariableSpec)(nil),                          // 270: pbtv.TemplateVariableSpec
+	(*config_item.ConfigItem)(nil),                                          // 271: pbci.ConfigItem
+	(*released_ci.ReleasedConfigItem)(nil),                                  // 272: pbrci.ReleasedConfigItem
+	(*config_item.ListConfigItemCounts)(nil),                                // 273: pbci.ListConfigItemCounts
+	(*content.ContentAttachment)(nil),                                       // 274: pbcontent.ContentAttachment
+	(*commit.CommitAttachment)(nil),                                         // 275: pbcommit.CommitAttachment
+	(*release.ReleaseAttachment)(nil),                                       // 276: pbrelease.ReleaseAttachment
+	(*release.ReleaseSpec)(nil),                                             // 277: pbrelease.ReleaseSpec
+	(*release.Release)(nil),                                                 // 278: pbrelease.Release
+	(*released_kv.ReleasedKv)(nil),                                          // 279: pbrkv.ReleasedKv
+	(*hook.HookAttachment)(nil),                                             // 280: pbhook.HookAttachment
+	(*hook.HookSpec)(nil),                                                   // 281: pbhook.HookSpec
+	(*base.Revision)(nil),                                                   // 282: pbbase.Revision
+	(*hook.CountHookTags)(nil),                                              // 283: pbhook.CountHookTags
+	(*hook_revision.HookRevisionAttachment)(nil),                            // 284: pbhr.HookRevisionAttachment
+	(*hook_revision.HookRevisionSpec)(nil),                                  // 285: pbhr.HookRevisionSpec
+	(*template_space.TemplateSpaceAttachment)(nil),                          // 286: pbts.TemplateSpaceAttachment
+	(*template_space.TemplateSpaceSpec)(nil),                                // 287: pbts.TemplateSpaceSpec
+	(*template_space.TemplateSpace)(nil),                                    // 288: pbts.TemplateSpace
+	(*template.TemplateAttachment)(nil),                                     // 289: pbtemplate.TemplateAttachment
+	(*template.TemplateSpec)(nil),                                           // 290: pbtemplate.TemplateSpec
+	(*template_revision.TemplateRevisionSpec)(nil),                          // 291: pbtr.TemplateRevisionSpec
+	(*template.Template)(nil),                                               // 292: pbtemplate.Template
+	(*template_revision.TemplateRevisionAttachment)(nil),                    // 293: pbtr.TemplateRevisionAttachment
+	(*template_revision.TemplateRevision)(nil),                              // 294: pbtr.TemplateRevision
+	(*template_revision.TemplateRevisionNamesDetail)(nil),                   // 295: pbtr.TemplateRevisionNamesDetail
+	(*template_set.TemplateSetAttachment)(nil),                              // 296: pbtset.TemplateSetAttachment
+	(*template_set.TemplateSetSpec)(nil),                                    // 297: pbtset.TemplateSetSpec
+	(*template_set.TemplateSet)(nil),                                        // 298: pbtset.TemplateSet
+	(*template_set.TemplateSetBriefInfo)(nil),                               // 299: pbtset.TemplateSetBriefInfo
+	(*template_set.TemplateSetOfBizDetail)(nil),                             // 300: pbtset.TemplateSetOfBizDetail
+	(*app_template_binding.AppTemplateBindingAttachment)(nil),               // 301: pbatb.AppTemplateBindingAttachment
+	(*app_template_binding.AppTemplateBindingSpec)(nil),                     // 302: pbatb.AppTemplateBindingSpec
+	(*app_template_binding.AppTemplateBinding)(nil),                         // 303: pbatb.AppTemplateBinding
+	(*app_template_binding.AppBoundTmplRevision)(nil),                       // 304: pbatb.AppBoundTmplRevision
+	(*app_template_binding.ReleasedAppBoundTmplRevision)(nil),               // 305: pbatb.ReleasedAppBoundTmplRevision
+	(*app_template_binding.Conflict)(nil),                                   // 306: pbatb.Conflict
+	(*app_template_variable.AppTemplateVariableReference)(nil),              // 307: pbatv.AppTemplateVariableReference
+	(*app_template_variable.AppTemplateVariableAttachment)(nil),             // 308: pbatv.AppTemplateVariableAttachment
+	(*app_template_variable.AppTemplateVariableSpec)(nil),                   // 309: pbatv.AppTemplateVariableSpec
+	(*template_binding_relation.TemplateBoundCounts)(nil),                   // 310: pbtbr.TemplateBoundCounts
+	(*template_binding_relation.TemplateRevisionBoundCounts)(nil),           // 311: pbtbr.TemplateRevisionBoundCounts
+	(*template_binding_relation.TemplateSetBoundCounts)(nil),                // 312: pbtbr.TemplateSetBoundCounts
+	(*template_binding_relation.TemplateBoundUnnamedAppDetail)(nil),         // 313: pbtbr.TemplateBoundUnnamedAppDetail
+	(*template_binding_relation.TemplateBoundNamedAppDetail)(nil),           // 314: pbtbr.TemplateBoundNamedAppDetail
+	(*template_binding_relation.TemplateBoundTemplateSetDetail)(nil),        // 315: pbtbr.TemplateBoundTemplateSetDetail
+	(*template_binding_relation.MultiTemplateBoundTemplateSetDetail)(nil),   // 316: pbtbr.MultiTemplateBoundTemplateSetDetail
+	(*template_binding_relation.TemplateRevisionBoundUnnamedAppDetail)(nil), // 317: pbtbr.TemplateRevisionBoundUnnamedAppDetail
+	(*template_binding_relation.TemplateRevisionBoundNamedAppDetail)(nil),   // 318: pbtbr.TemplateRevisionBoundNamedAppDetail
+	(*template_binding_relation.TemplateSetBoundUnnamedAppDetail)(nil),      // 319: pbtbr.TemplateSetBoundUnnamedAppDetail
+	(*template_binding_relation.MultiTemplateSetBoundUnnamedAppDetail)(nil), // 320: pbtbr.MultiTemplateSetBoundUnnamedAppDetail
+	(*template_binding_relation.TemplateSetBoundNamedAppDetail)(nil),        // 321: pbtbr.TemplateSetBoundNamedAppDetail
+	(*template_binding_relation.LatestTemplateBoundUnnamedAppDetail)(nil),   // 322: pbtbr.LatestTemplateBoundUnnamedAppDetail
+	(*template_variable.TemplateVariableAttachment)(nil),                    // 323: pbtv.TemplateVariableAttachment
+	(*template_variable.TemplateVariable)(nil),                              // 324: pbtv.TemplateVariable
+	(*group.GroupAttachment)(nil),                                           // 325: pbgroup.GroupAttachment
+	(*group.GroupSpec)(nil),                                                 // 326: pbgroup.GroupSpec
+	(*group.Group)(nil),                                                     // 327: pbgroup.Group
+	(*structpb.Struct)(nil),                                                 // 328: google.protobuf.Struct
+	(*base.BasePage)(nil),                                                   // 329: pbbase.BasePage
+	(*kv.KvAttachment)(nil),                                                 // 330: pbkv.KvAttachment
+	(*kv.KvSpec)(nil),                                                       // 331: pbkv.KvSpec
+	(*kv.Kv)(nil),                                                           // 332: pbkv.Kv
+	(*client.Client)(nil),                                                   // 333: pbclient.Client
+	(*client_event.ClientEvent)(nil),                                        // 334: pbce.ClientEvent
+	(*client.ClientQueryCondition)(nil),                                     // 335: pbclient.ClientQueryCondition
+	(*client_query.ClientQuery)(nil),                                        // 336: pbcq.ClientQuery
+	(*app_template_binding.TemplateBinding)(nil),                            // 337: pbatb.TemplateBinding
+	(*hook.Hook)(nil),                                                       // 338: pbhook.Hook
+	(*hook_revision.HookRevision)(nil),                                      // 339: pbhr.HookRevision
+	(*base.EmptyReq)(nil),                                                   // 340: pbbase.EmptyReq
+	(*client.ClientCommonReq)(nil),                                          // 341: pbclient.ClientCommonReq
+	(*base.EmptyResp)(nil),                                                  // 342: pbbase.EmptyResp
+	(*content.Content)(nil),                                                 // 343: pbcontent.Content
+	(*commit.Commit)(nil),                                                   // 344: pbcommit.Commit
 }
 var file_data_service_proto_depIdxs = []int32{
-	257, // 0: pbds.UpdateCredentialScopesReq.created:type_name -> pbcrs.CredentialScopeSpec
-	258, // 1: pbds.UpdateCredentialScopesReq.updated:type_name -> pbcrs.UpdateScopeSpec
+	258, // 0: pbds.UpdateCredentialScopesReq.created:type_name -> pbcrs.CredentialScopeSpec
+	259, // 1: pbds.UpdateCredentialScopesReq.updated:type_name -> pbcrs.UpdateScopeSpec
 	238, // 2: pbds.CredentialScopePreviewResp.details:type_name -> pbds.CredentialScopePreviewResp.Detail
-	259, // 3: pbds.DeleteCredentialScopesReq.attachment:type_name -> pbcrs.CredentialScopeAttachment
-	260, // 4: pbds.ListCredentialScopesResp.details:type_name -> pbcrs.CredentialScopeList
-	259, // 5: pbds.CreateCredentialScopeReq.attachment:type_name -> pbcrs.CredentialScopeAttachment
-	261, // 6: pbds.CreateCredentialReq.attachment:type_name -> pbcredential.CredentialAttachment
-	262, // 7: pbds.CreateCredentialReq.spec:type_name -> pbcredential.CredentialSpec
-	263, // 8: pbds.ListCredentialResp.details:type_name -> pbcredential.CredentialList
-	261, // 9: pbds.UpdateCredentialReq.attachment:type_name -> pbcredential.CredentialAttachment
-	262, // 10: pbds.UpdateCredentialReq.spec:type_name -> pbcredential.CredentialSpec
-	261, // 11: pbds.DeleteCredentialReq.attachment:type_name -> pbcredential.CredentialAttachment
-	264, // 12: pbds.CreateAppReq.spec:type_name -> pbapp.AppSpec
-	264, // 13: pbds.UpdateAppReq.spec:type_name -> pbapp.AppSpec
-	265, // 14: pbds.ListAppsResp.details:type_name -> pbapp.App
-	265, // 15: pbds.ListAppsByIDsResp.details:type_name -> pbapp.App
-	266, // 16: pbds.CreateConfigItemReq.config_item_attachment:type_name -> pbci.ConfigItemAttachment
-	267, // 17: pbds.CreateConfigItemReq.config_item_spec:type_name -> pbci.ConfigItemSpec
-	268, // 18: pbds.CreateConfigItemReq.content_spec:type_name -> pbcontent.ContentSpec
+	260, // 3: pbds.DeleteCredentialScopesReq.attachment:type_name -> pbcrs.CredentialScopeAttachment
+	261, // 4: pbds.ListCredentialScopesResp.details:type_name -> pbcrs.CredentialScopeList
+	260, // 5: pbds.CreateCredentialScopeReq.attachment:type_name -> pbcrs.CredentialScopeAttachment
+	262, // 6: pbds.CreateCredentialReq.attachment:type_name -> pbcredential.CredentialAttachment
+	263, // 7: pbds.CreateCredentialReq.spec:type_name -> pbcredential.CredentialSpec
+	264, // 8: pbds.ListCredentialResp.details:type_name -> pbcredential.CredentialList
+	262, // 9: pbds.UpdateCredentialReq.attachment:type_name -> pbcredential.CredentialAttachment
+	263, // 10: pbds.UpdateCredentialReq.spec:type_name -> pbcredential.CredentialSpec
+	262, // 11: pbds.DeleteCredentialReq.attachment:type_name -> pbcredential.CredentialAttachment
+	265, // 12: pbds.CreateAppReq.spec:type_name -> pbapp.AppSpec
+	265, // 13: pbds.UpdateAppReq.spec:type_name -> pbapp.AppSpec
+	266, // 14: pbds.ListAppsResp.details:type_name -> pbapp.App
+	266, // 15: pbds.ListAppsByIDsResp.details:type_name -> pbapp.App
+	267, // 16: pbds.CreateConfigItemReq.config_item_attachment:type_name -> pbci.ConfigItemAttachment
+	268, // 17: pbds.CreateConfigItemReq.config_item_spec:type_name -> pbci.ConfigItemSpec
+	269, // 18: pbds.CreateConfigItemReq.content_spec:type_name -> pbcontent.ContentSpec
 	239, // 19: pbds.BatchUpsertConfigItemsReq.items:type_name -> pbds.BatchUpsertConfigItemsReq.ConfigItem
-	266, // 20: pbds.UpdateConfigItemReq.attachment:type_name -> pbci.ConfigItemAttachment
-	267, // 21: pbds.UpdateConfigItemReq.spec:type_name -> pbci.ConfigItemSpec
-	266, // 22: pbds.DeleteConfigItemReq.attachment:type_name -> pbci.ConfigItemAttachment
-	266, // 23: pbds.UnDeleteConfigItemReq.attachment:type_name -> pbci.ConfigItemAttachment
-	266, // 24: pbds.UndoConfigItemReq.attachment:type_name -> pbci.ConfigItemAttachment
-	269, // 25: pbds.ListConfigItemsResp.details:type_name -> pbci.ConfigItem
-	270, // 26: pbds.ListReleasedConfigItemsResp.details:type_name -> pbrci.ReleasedConfigItem
-	271, // 27: pbds.ListConfigItemCountResp.details:type_name -> pbci.ListConfigItemCounts
-	240, // 28: pbds.ListConfigItemByTupleReq.items:type_name -> pbds.ListConfigItemByTupleReq.Item
-	269, // 29: pbds.ListConfigItemByTupleResp.config_items:type_name -> pbci.ConfigItem
-	272, // 30: pbds.CreateContentReq.attachment:type_name -> pbcontent.ContentAttachment
-	268, // 31: pbds.CreateContentReq.spec:type_name -> pbcontent.ContentSpec
-	273, // 32: pbds.CreateCommitReq.attachment:type_name -> pbcommit.CommitAttachment
-	274, // 33: pbds.CreateReleaseReq.attachment:type_name -> pbrelease.ReleaseAttachment
-	275, // 34: pbds.CreateReleaseReq.spec:type_name -> pbrelease.ReleaseSpec
-	276, // 35: pbds.CreateReleaseReq.variables:type_name -> pbtv.TemplateVariableSpec
-	277, // 36: pbds.ListReleasesResp.details:type_name -> pbrelease.Release
-	278, // 37: pbds.ListReleasedKvResp.details:type_name -> pbrkv.ReleasedKv
-	279, // 38: pbds.CreateHookReq.attachment:type_name -> pbhook.HookAttachment
-	280, // 39: pbds.CreateHookReq.spec:type_name -> pbhook.HookSpec
-	66,  // 40: pbds.GetHookResp.spec:type_name -> pbds.GetHookInfoSpec
-	279, // 41: pbds.GetHookResp.attachment:type_name -> pbhook.HookAttachment
-	281, // 42: pbds.GetHookResp.revision:type_name -> pbbase.Revision
-	241, // 43: pbds.GetHookInfoSpec.releases:type_name -> pbds.GetHookInfoSpec.Releases
-	242, // 44: pbds.ListHooksResp.details:type_name -> pbds.ListHooksResp.Detail
-	282, // 45: pbds.ListHookTagResp.details:type_name -> pbhook.CountHookTags
-	243, // 46: pbds.ListHookReferencesResp.details:type_name -> pbds.ListHookReferencesResp.Detail
-	279, // 47: pbds.UpdateHookReq.attachment:type_name -> pbhook.HookAttachment
-	280, // 48: pbds.UpdateHookReq.spec:type_name -> pbhook.HookSpec
-	283, // 49: pbds.CreateHookRevisionReq.attachment:type_name -> pbhr.HookRevisionAttachment
-	284, // 50: pbds.CreateHookRevisionReq.spec:type_name -> pbhr.HookRevisionSpec
-	244, // 51: pbds.ListHookRevisionsResp.details:type_name -> pbds.ListHookRevisionsResp.ListHookRevisionsData
-	283, // 52: pbds.UpdateHookRevisionReq.attachment:type_name -> pbhr.HookRevisionAttachment
-	284, // 53: pbds.UpdateHookRevisionReq.spec:type_name -> pbhr.HookRevisionSpec
-	245, // 54: pbds.ListHookRevisionReferencesResp.details:type_name -> pbds.ListHookRevisionReferencesResp.Detail
-	246, // 55: pbds.GetReleaseHookResp.pre_hook:type_name -> pbds.GetReleaseHookResp.Hook
-	246, // 56: pbds.GetReleaseHookResp.post_hook:type_name -> pbds.GetReleaseHookResp.Hook
-	285, // 57: pbds.CreateTemplateSpaceReq.attachment:type_name -> pbts.TemplateSpaceAttachment
-	286, // 58: pbds.CreateTemplateSpaceReq.spec:type_name -> pbts.TemplateSpaceSpec
-	287, // 59: pbds.ListTemplateSpacesResp.details:type_name -> pbts.TemplateSpace
-	285, // 60: pbds.UpdateTemplateSpaceReq.attachment:type_name -> pbts.TemplateSpaceAttachment
-	286, // 61: pbds.UpdateTemplateSpaceReq.spec:type_name -> pbts.TemplateSpaceSpec
-	285, // 62: pbds.DeleteTemplateSpaceReq.attachment:type_name -> pbts.TemplateSpaceAttachment
-	287, // 63: pbds.ListTmplSpacesByIDsResp.details:type_name -> pbts.TemplateSpace
-	288, // 64: pbds.CreateTemplateReq.attachment:type_name -> pbtemplate.TemplateAttachment
-	289, // 65: pbds.CreateTemplateReq.spec:type_name -> pbtemplate.TemplateSpec
-	290, // 66: pbds.CreateTemplateReq.tr_spec:type_name -> pbtr.TemplateRevisionSpec
-	291, // 67: pbds.ListTemplatesResp.details:type_name -> pbtemplate.Template
-	288, // 68: pbds.UpdateTemplateReq.attachment:type_name -> pbtemplate.TemplateAttachment
-	289, // 69: pbds.UpdateTemplateReq.spec:type_name -> pbtemplate.TemplateSpec
-	288, // 70: pbds.DeleteTemplateReq.attachment:type_name -> pbtemplate.TemplateAttachment
-	288, // 71: pbds.BatchDeleteTemplateReq.attachment:type_name -> pbtemplate.TemplateAttachment
-	291, // 72: pbds.ListTemplatesByIDsResp.details:type_name -> pbtemplate.Template
-	291, // 73: pbds.ListTemplatesNotBoundResp.details:type_name -> pbtemplate.Template
-	291, // 74: pbds.ListTmplsOfTmplSetResp.details:type_name -> pbtemplate.Template
-	247, // 75: pbds.ListTemplateByTupleReq.items:type_name -> pbds.ListTemplateByTupleReq.Item
-	248, // 76: pbds.ListTemplateByTupleReqResp.items:type_name -> pbds.ListTemplateByTupleReqResp.Item
-	249, // 77: pbds.BatchUpsertTemplatesReq.items:type_name -> pbds.BatchUpsertTemplatesReq.Item
-	292, // 78: pbds.CreateTemplateRevisionReq.attachment:type_name -> pbtr.TemplateRevisionAttachment
-	290, // 79: pbds.CreateTemplateRevisionReq.spec:type_name -> pbtr.TemplateRevisionSpec
-	293, // 80: pbds.ListTemplateRevisionsResp.details:type_name -> pbtr.TemplateRevision
-	292, // 81: pbds.DeleteTemplateRevisionReq.attachment:type_name -> pbtr.TemplateRevisionAttachment
-	293, // 82: pbds.ListTemplateRevisionsByIDsResp.details:type_name -> pbtr.TemplateRevision
-	294, // 83: pbds.ListTmplRevisionNamesByTmplIDsResp.details:type_name -> pbtr.TemplateRevisionNamesDetail
-	295, // 84: pbds.CreateTemplateSetReq.attachment:type_name -> pbtset.TemplateSetAttachment
-	296, // 85: pbds.CreateTemplateSetReq.spec:type_name -> pbtset.TemplateSetSpec
-	297, // 86: pbds.ListTemplateSetsResp.details:type_name -> pbtset.TemplateSet
-	295, // 87: pbds.UpdateTemplateSetReq.attachment:type_name -> pbtset.TemplateSetAttachment
-	296, // 88: pbds.UpdateTemplateSetReq.spec:type_name -> pbtset.TemplateSetSpec
-	295, // 89: pbds.DeleteTemplateSetReq.attachment:type_name -> pbtset.TemplateSetAttachment
-	297, // 90: pbds.ListAppTemplateSetsResp.details:type_name -> pbtset.TemplateSet
-	297, // 91: pbds.ListTemplateSetsByIDsResp.details:type_name -> pbtset.TemplateSet
-	298, // 92: pbds.ListTemplateSetBriefInfoByIDsResp.details:type_name -> pbtset.TemplateSetBriefInfo
-	299, // 93: pbds.ListTmplSetsOfBizResp.details:type_name -> pbtset.TemplateSetOfBizDetail
-	300, // 94: pbds.CreateAppTemplateBindingReq.attachment:type_name -> pbatb.AppTemplateBindingAttachment
-	301, // 95: pbds.CreateAppTemplateBindingReq.spec:type_name -> pbatb.AppTemplateBindingSpec
-	302, // 96: pbds.ListAppTemplateBindingsResp.details:type_name -> pbatb.AppTemplateBinding
-	300, // 97: pbds.UpdateAppTemplateBindingReq.attachment:type_name -> pbatb.AppTemplateBindingAttachment
-	301, // 98: pbds.UpdateAppTemplateBindingReq.spec:type_name -> pbatb.AppTemplateBindingSpec
-	300, // 99: pbds.DeleteAppTemplateBindingReq.attachment:type_name -> pbatb.AppTemplateBindingAttachment
-	303, // 100: pbds.ListAppBoundTmplRevisionsResp.details:type_name -> pbatb.AppBoundTmplRevision
-	304, // 101: pbds.ListReleasedAppBoundTmplRevisionsResp.details:type_name -> pbatb.ReleasedAppBoundTmplRevision
-	304, // 102: pbds.GetReleasedAppBoundTmplRevisionResp.detail:type_name -> pbatb.ReleasedAppBoundTmplRevision
-	300, // 103: pbds.CheckAppTemplateBindingReq.attachment:type_name -> pbatb.AppTemplateBindingAttachment
-	301, // 104: pbds.CheckAppTemplateBindingReq.spec:type_name -> pbatb.AppTemplateBindingSpec
-	305, // 105: pbds.CheckAppTemplateBindingResp.details:type_name -> pbatb.Conflict
-	306, // 106: pbds.GetAppTmplVariableRefsResp.details:type_name -> pbatv.AppTemplateVariableReference
-	306, // 107: pbds.GetReleasedAppTmplVariableRefsResp.details:type_name -> pbatv.AppTemplateVariableReference
-	307, // 108: pbds.UpdateAppTmplVariablesReq.attachment:type_name -> pbatv.AppTemplateVariableAttachment
-	308, // 109: pbds.UpdateAppTmplVariablesReq.spec:type_name -> pbatv.AppTemplateVariableSpec
-	276, // 110: pbds.ListAppTmplVariablesResp.details:type_name -> pbtv.TemplateVariableSpec
-	276, // 111: pbds.ListReleasedAppTmplVariablesResp.details:type_name -> pbtv.TemplateVariableSpec
-	309, // 112: pbds.ListTmplBoundCountsResp.details:type_name -> pbtbr.TemplateBoundCounts
-	310, // 113: pbds.ListTmplRevisionBoundCountsResp.details:type_name -> pbtbr.TemplateRevisionBoundCounts
-	311, // 114: pbds.ListTmplSetBoundCountsResp.details:type_name -> pbtbr.TemplateSetBoundCounts
-	312, // 115: pbds.ListTmplBoundUnnamedAppsResp.details:type_name -> pbtbr.TemplateBoundUnnamedAppDetail
-	313, // 116: pbds.ListTmplBoundNamedAppsResp.details:type_name -> pbtbr.TemplateBoundNamedAppDetail
-	314, // 117: pbds.ListTmplBoundTmplSetsResp.details:type_name -> pbtbr.TemplateBoundTemplateSetDetail
-	315, // 118: pbds.ListMultiTmplBoundTmplSetsResp.details:type_name -> pbtbr.MultiTemplateBoundTemplateSetDetail
-	316, // 119: pbds.ListTmplRevisionBoundUnnamedAppsResp.details:type_name -> pbtbr.TemplateRevisionBoundUnnamedAppDetail
-	317, // 120: pbds.ListTmplRevisionBoundNamedAppsResp.details:type_name -> pbtbr.TemplateRevisionBoundNamedAppDetail
-	318, // 121: pbds.ListTmplSetBoundUnnamedAppsResp.details:type_name -> pbtbr.TemplateSetBoundUnnamedAppDetail
-	319, // 122: pbds.ListMultiTmplSetBoundUnnamedAppsResp.details:type_name -> pbtbr.MultiTemplateSetBoundUnnamedAppDetail
-	320, // 123: pbds.ListTmplSetBoundNamedAppsResp.details:type_name -> pbtbr.TemplateSetBoundNamedAppDetail
-	321, // 124: pbds.ListLatestTmplBoundUnnamedAppsResp.details:type_name -> pbtbr.LatestTemplateBoundUnnamedAppDetail
-	322, // 125: pbds.CreateTemplateVariableReq.attachment:type_name -> pbtv.TemplateVariableAttachment
-	276, // 126: pbds.CreateTemplateVariableReq.spec:type_name -> pbtv.TemplateVariableSpec
-	276, // 127: pbds.ImportTemplateVariablesReq.specs:type_name -> pbtv.TemplateVariableSpec
-	323, // 128: pbds.ListTemplateVariablesResp.details:type_name -> pbtv.TemplateVariable
-	322, // 129: pbds.UpdateTemplateVariableReq.attachment:type_name -> pbtv.TemplateVariableAttachment
-	276, // 130: pbds.UpdateTemplateVariableReq.spec:type_name -> pbtv.TemplateVariableSpec
-	322, // 131: pbds.DeleteTemplateVariableReq.attachment:type_name -> pbtv.TemplateVariableAttachment
-	324, // 132: pbds.CreateGroupReq.attachment:type_name -> pbgroup.GroupAttachment
-	325, // 133: pbds.CreateGroupReq.spec:type_name -> pbgroup.GroupSpec
-	326, // 134: pbds.ListAllGroupsResp.details:type_name -> pbgroup.Group
-	250, // 135: pbds.ListAppGroupsResp.details:type_name -> pbds.ListAppGroupsResp.ListAppGroupsData
-	324, // 136: pbds.UpdateGroupReq.attachment:type_name -> pbgroup.GroupAttachment
-	325, // 137: pbds.UpdateGroupReq.spec:type_name -> pbgroup.GroupSpec
-	324, // 138: pbds.DeleteGroupReq.attachment:type_name -> pbgroup.GroupAttachment
-	251, // 139: pbds.CountGroupsReleasedAppsResp.data:type_name -> pbds.CountGroupsReleasedAppsResp.CountGroupsReleasedAppsData
-	252, // 140: pbds.ListGroupReleasedAppsResp.details:type_name -> pbds.ListGroupReleasedAppsResp.ListGroupReleasedAppsData
-	327, // 141: pbds.PublishReq.labels:type_name -> google.protobuf.Struct
-	276, // 142: pbds.GenerateReleaseAndPublishReq.variables:type_name -> pbtv.TemplateVariableSpec
-	327, // 143: pbds.GenerateReleaseAndPublishReq.labels:type_name -> google.protobuf.Struct
-	328, // 144: pbds.ListInstancesReq.page:type_name -> pbbase.BasePage
-	208, // 145: pbds.ListInstancesResp.details:type_name -> pbds.InstanceResource
-	211, // 146: pbds.FetchInstanceInfoResp.details:type_name -> pbds.InstanceInfo
-	329, // 147: pbds.CreateKvReq.attachment:type_name -> pbkv.KvAttachment
-	330, // 148: pbds.CreateKvReq.spec:type_name -> pbkv.KvSpec
-	329, // 149: pbds.UpdateKvReq.attachment:type_name -> pbkv.KvAttachment
-	330, // 150: pbds.UpdateKvReq.spec:type_name -> pbkv.KvSpec
-	331, // 151: pbds.ListKvsResp.details:type_name -> pbkv.Kv
-	330, // 152: pbds.DeleteKvReq.spec:type_name -> pbkv.KvSpec
-	329, // 153: pbds.DeleteKvReq.attachment:type_name -> pbkv.KvAttachment
-	253, // 154: pbds.BatchUpsertKvsReq.kvs:type_name -> pbds.BatchUpsertKvsReq.Kv
-	332, // 155: pbds.BatchUpsertClientMetricsReq.client_items:type_name -> pbclient.Client
-	333, // 156: pbds.BatchUpsertClientMetricsReq.client_event_items:type_name -> pbce.ClientEvent
-	254, // 157: pbds.ListClientsReq.order:type_name -> pbds.ListClientsReq.Order
-	334, // 158: pbds.ListClientsReq.search:type_name -> pbclient.ClientQueryCondition
-	255, // 159: pbds.ListClientsResp.details:type_name -> pbds.ListClientsResp.Item
-	256, // 160: pbds.ListClientEventsReq.order:type_name -> pbds.ListClientEventsReq.Order
-	333, // 161: pbds.ListClientEventsResp.details:type_name -> pbce.ClientEvent
-	335, // 162: pbds.ListClientQuerysResp.details:type_name -> pbcq.ClientQuery
-	327, // 163: pbds.CreateClientQueryReq.search_condition:type_name -> google.protobuf.Struct
-	327, // 164: pbds.UpdateClientQueryReq.search_condition:type_name -> google.protobuf.Struct
-	266, // 165: pbds.BatchUpsertConfigItemsReq.ConfigItem.config_item_attachment:type_name -> pbci.ConfigItemAttachment
-	267, // 166: pbds.BatchUpsertConfigItemsReq.ConfigItem.config_item_spec:type_name -> pbci.ConfigItemSpec
-	268, // 167: pbds.BatchUpsertConfigItemsReq.ConfigItem.content_spec:type_name -> pbcontent.ContentSpec
-	276, // 168: pbds.BatchUpsertConfigItemsReq.ConfigItem.variables:type_name -> pbtv.TemplateVariableSpec
-	336, // 169: pbds.ListHooksResp.Detail.hook:type_name -> pbhook.Hook
-	337, // 170: pbds.ListHookRevisionsResp.ListHookRevisionsData.hook_revision:type_name -> pbhr.HookRevision
-	291, // 171: pbds.ListTemplateByTupleReqResp.Item.template:type_name -> pbtemplate.Template
-	293, // 172: pbds.ListTemplateByTupleReqResp.Item.template_revision:type_name -> pbtr.TemplateRevision
-	291, // 173: pbds.BatchUpsertTemplatesReq.Item.template:type_name -> pbtemplate.Template
-	293, // 174: pbds.BatchUpsertTemplatesReq.Item.template_revision:type_name -> pbtr.TemplateRevision
-	327, // 175: pbds.ListAppGroupsResp.ListAppGroupsData.old_selector:type_name -> google.protobuf.Struct
-	327, // 176: pbds.ListAppGroupsResp.ListAppGroupsData.new_selector:type_name -> google.protobuf.Struct
-	329, // 177: pbds.BatchUpsertKvsReq.Kv.kv_attachment:type_name -> pbkv.KvAttachment
-	330, // 178: pbds.BatchUpsertKvsReq.Kv.kv_spec:type_name -> pbkv.KvSpec
-	332, // 179: pbds.ListClientsResp.Item.client:type_name -> pbclient.Client
-	20,  // 180: pbds.Data.CreateApp:input_type -> pbds.CreateAppReq
-	21,  // 181: pbds.Data.UpdateApp:input_type -> pbds.UpdateAppReq
-	22,  // 182: pbds.Data.DeleteApp:input_type -> pbds.DeleteAppReq
-	23,  // 183: pbds.Data.GetApp:input_type -> pbds.GetAppReq
-	24,  // 184: pbds.Data.GetAppByID:input_type -> pbds.GetAppByIDReq
-	25,  // 185: pbds.Data.GetAppByName:input_type -> pbds.GetAppByNameReq
-	26,  // 186: pbds.Data.ListAppsRest:input_type -> pbds.ListAppsRestReq
-	28,  // 187: pbds.Data.ListAppsByIDs:input_type -> pbds.ListAppsByIDsReq
-	30,  // 188: pbds.Data.CreateConfigItem:input_type -> pbds.CreateConfigItemReq
-	31,  // 189: pbds.Data.BatchUpsertConfigItems:input_type -> pbds.BatchUpsertConfigItemsReq
-	33,  // 190: pbds.Data.UpdateConfigItem:input_type -> pbds.UpdateConfigItemReq
-	34,  // 191: pbds.Data.DeleteConfigItem:input_type -> pbds.DeleteConfigItemReq
-	35,  // 192: pbds.Data.UnDeleteConfigItem:input_type -> pbds.UnDeleteConfigItemReq
-	36,  // 193: pbds.Data.UndoConfigItem:input_type -> pbds.UndoConfigItemReq
-	37,  // 194: pbds.Data.GetConfigItem:input_type -> pbds.GetConfigItemReq
-	38,  // 195: pbds.Data.ListConfigItems:input_type -> pbds.ListConfigItemsReq
-	40,  // 196: pbds.Data.ListReleasedConfigItems:input_type -> pbds.ListReleasedConfigItemsReq
-	42,  // 197: pbds.Data.ListConfigItemCount:input_type -> pbds.ListConfigItemCountReq
-	44,  // 198: pbds.Data.ListConfigItemByTuple:input_type -> pbds.ListConfigItemByTupleReq
-	18,  // 199: pbds.Data.UpdateConfigHook:input_type -> pbds.UpdateConfigHookReq
-	46,  // 200: pbds.Data.CreateContent:input_type -> pbds.CreateContentReq
-	47,  // 201: pbds.Data.GetContent:input_type -> pbds.GetContentReq
-	48,  // 202: pbds.Data.CreateCommit:input_type -> pbds.CreateCommitReq
-	49,  // 203: pbds.Data.GetLatestCommit:input_type -> pbds.GetLatestCommitReq
-	50,  // 204: pbds.Data.CreateRelease:input_type -> pbds.CreateReleaseReq
-	51,  // 205: pbds.Data.ListReleases:input_type -> pbds.ListReleasesReq
-	53,  // 206: pbds.Data.GetReleaseByName:input_type -> pbds.GetReleaseByNameReq
-	54,  // 207: pbds.Data.GetRelease:input_type -> pbds.GetReleaseReq
-	55,  // 208: pbds.Data.DeprecateRelease:input_type -> pbds.DeprecateReleaseReq
-	56,  // 209: pbds.Data.UnDeprecateRelease:input_type -> pbds.UnDeprecateReleaseReq
-	57,  // 210: pbds.Data.DeleteRelease:input_type -> pbds.DeleteReleaseReq
-	58,  // 211: pbds.Data.GetReleasedConfigItem:input_type -> pbds.GetReleasedCIReq
-	59,  // 212: pbds.Data.GetReleasedKv:input_type -> pbds.GetReleasedKvReq
-	60,  // 213: pbds.Data.ListReleasedKvs:input_type -> pbds.ListReleasedKvReq
-	62,  // 214: pbds.Data.CreateHook:input_type -> pbds.CreateHookReq
-	67,  // 215: pbds.Data.ListHooks:input_type -> pbds.ListHooksReq
-	72,  // 216: pbds.Data.DeleteHook:input_type -> pbds.DeleteHookReq
-	73,  // 217: pbds.Data.UpdateHook:input_type -> pbds.UpdateHookReq
-	63,  // 218: pbds.Data.ListHookTags:input_type -> pbds.ListHookTagReq
-	70,  // 219: pbds.Data.ListHookReferences:input_type -> pbds.ListHookReferencesReq
-	64,  // 220: pbds.Data.GetHook:input_type -> pbds.GetHookReq
-	74,  // 221: pbds.Data.CreateHookRevision:input_type -> pbds.CreateHookRevisionReq
-	75,  // 222: pbds.Data.ListHookRevisions:input_type -> pbds.ListHookRevisionsReq
-	77,  // 223: pbds.Data.GetHookRevisionByID:input_type -> pbds.GetHookRevisionByIdReq
-	78,  // 224: pbds.Data.DeleteHookRevision:input_type -> pbds.DeleteHookRevisionReq
-	79,  // 225: pbds.Data.PublishHookRevision:input_type -> pbds.PublishHookRevisionReq
-	80,  // 226: pbds.Data.GetHookRevisionByPubState:input_type -> pbds.GetByPubStateReq
-	81,  // 227: pbds.Data.UpdateHookRevision:input_type -> pbds.UpdateHookRevisionReq
-	82,  // 228: pbds.Data.ListHookRevisionReferences:input_type -> pbds.ListHookRevisionReferencesReq
-	84,  // 229: pbds.Data.GetReleaseHook:input_type -> pbds.GetReleaseHookReq
-	86,  // 230: pbds.Data.CreateTemplateSpace:input_type -> pbds.CreateTemplateSpaceReq
-	87,  // 231: pbds.Data.ListTemplateSpaces:input_type -> pbds.ListTemplateSpacesReq
-	89,  // 232: pbds.Data.UpdateTemplateSpace:input_type -> pbds.UpdateTemplateSpaceReq
-	90,  // 233: pbds.Data.DeleteTemplateSpace:input_type -> pbds.DeleteTemplateSpaceReq
-	338, // 234: pbds.Data.GetAllBizsOfTmplSpaces:input_type -> pbbase.EmptyReq
-	92,  // 235: pbds.Data.CreateDefaultTmplSpace:input_type -> pbds.CreateDefaultTmplSpaceReq
-	93,  // 236: pbds.Data.ListTmplSpacesByIDs:input_type -> pbds.ListTmplSpacesByIDsReq
-	95,  // 237: pbds.Data.CreateTemplate:input_type -> pbds.CreateTemplateReq
-	96,  // 238: pbds.Data.ListTemplates:input_type -> pbds.ListTemplatesReq
-	98,  // 239: pbds.Data.UpdateTemplate:input_type -> pbds.UpdateTemplateReq
-	99,  // 240: pbds.Data.DeleteTemplate:input_type -> pbds.DeleteTemplateReq
-	100, // 241: pbds.Data.BatchDeleteTemplate:input_type -> pbds.BatchDeleteTemplateReq
-	101, // 242: pbds.Data.AddTmplsToTmplSets:input_type -> pbds.AddTmplsToTmplSetsReq
-	102, // 243: pbds.Data.DeleteTmplsFromTmplSets:input_type -> pbds.DeleteTmplsFromTmplSetsReq
-	103, // 244: pbds.Data.ListTemplatesByIDs:input_type -> pbds.ListTemplatesByIDsReq
-	105, // 245: pbds.Data.ListTemplatesNotBound:input_type -> pbds.ListTemplatesNotBoundReq
-	107, // 246: pbds.Data.ListTmplsOfTmplSet:input_type -> pbds.ListTmplsOfTmplSetReq
-	109, // 247: pbds.Data.ListTemplateByTuple:input_type -> pbds.ListTemplateByTupleReq
-	111, // 248: pbds.Data.BatchUpsertTemplates:input_type -> pbds.BatchUpsertTemplatesReq
-	113, // 249: pbds.Data.CreateTemplateRevision:input_type -> pbds.CreateTemplateRevisionReq
-	114, // 250: pbds.Data.ListTemplateRevisions:input_type -> pbds.ListTemplateRevisionsReq
-	116, // 251: pbds.Data.DeleteTemplateRevision:input_type -> pbds.DeleteTemplateRevisionReq
-	117, // 252: pbds.Data.ListTemplateRevisionsByIDs:input_type -> pbds.ListTemplateRevisionsByIDsReq
-	119, // 253: pbds.Data.ListTmplRevisionNamesByTmplIDs:input_type -> pbds.ListTmplRevisionNamesByTmplIDsReq
-	121, // 254: pbds.Data.CreateTemplateSet:input_type -> pbds.CreateTemplateSetReq
-	122, // 255: pbds.Data.ListTemplateSets:input_type -> pbds.ListTemplateSetsReq
-	124, // 256: pbds.Data.UpdateTemplateSet:input_type -> pbds.UpdateTemplateSetReq
-	125, // 257: pbds.Data.DeleteTemplateSet:input_type -> pbds.DeleteTemplateSetReq
-	126, // 258: pbds.Data.ListAppTemplateSets:input_type -> pbds.ListAppTemplateSetsReq
-	128, // 259: pbds.Data.ListTemplateSetsByIDs:input_type -> pbds.ListTemplateSetsByIDsReq
-	130, // 260: pbds.Data.ListTemplateSetBriefInfoByIDs:input_type -> pbds.ListTemplateSetBriefInfoByIDsReq
-	132, // 261: pbds.Data.ListTmplSetsOfBiz:input_type -> pbds.ListTmplSetsOfBizReq
-	134, // 262: pbds.Data.CreateAppTemplateBinding:input_type -> pbds.CreateAppTemplateBindingReq
-	135, // 263: pbds.Data.ListAppTemplateBindings:input_type -> pbds.ListAppTemplateBindingsReq
-	137, // 264: pbds.Data.UpdateAppTemplateBinding:input_type -> pbds.UpdateAppTemplateBindingReq
-	138, // 265: pbds.Data.DeleteAppTemplateBinding:input_type -> pbds.DeleteAppTemplateBindingReq
-	139, // 266: pbds.Data.ListAppBoundTmplRevisions:input_type -> pbds.ListAppBoundTmplRevisionsReq
-	141, // 267: pbds.Data.ListReleasedAppBoundTmplRevisions:input_type -> pbds.ListReleasedAppBoundTmplRevisionsReq
-	143, // 268: pbds.Data.GetReleasedAppBoundTmplRevision:input_type -> pbds.GetReleasedAppBoundTmplRevisionReq
-	145, // 269: pbds.Data.CheckAppTemplateBinding:input_type -> pbds.CheckAppTemplateBindingReq
-	147, // 270: pbds.Data.ExtractAppTmplVariables:input_type -> pbds.ExtractAppTmplVariablesReq
-	149, // 271: pbds.Data.GetAppTmplVariableRefs:input_type -> pbds.GetAppTmplVariableRefsReq
-	151, // 272: pbds.Data.GetReleasedAppTmplVariableRefs:input_type -> pbds.GetReleasedAppTmplVariableRefsReq
-	153, // 273: pbds.Data.UpdateAppTmplVariables:input_type -> pbds.UpdateAppTmplVariablesReq
-	154, // 274: pbds.Data.ListAppTmplVariables:input_type -> pbds.ListAppTmplVariablesReq
-	156, // 275: pbds.Data.ListReleasedAppTmplVariables:input_type -> pbds.ListReleasedAppTmplVariablesReq
-	158, // 276: pbds.Data.ListTmplBoundCounts:input_type -> pbds.ListTmplBoundCountsReq
-	160, // 277: pbds.Data.ListTmplRevisionBoundCounts:input_type -> pbds.ListTmplRevisionBoundCountsReq
-	162, // 278: pbds.Data.ListTmplSetBoundCounts:input_type -> pbds.ListTmplSetBoundCountsReq
-	164, // 279: pbds.Data.ListTmplBoundUnnamedApps:input_type -> pbds.ListTmplBoundUnnamedAppsReq
-	166, // 280: pbds.Data.ListTmplBoundNamedApps:input_type -> pbds.ListTmplBoundNamedAppsReq
-	168, // 281: pbds.Data.ListTmplBoundTmplSets:input_type -> pbds.ListTmplBoundTmplSetsReq
-	170, // 282: pbds.Data.ListMultiTmplBoundTmplSets:input_type -> pbds.ListMultiTmplBoundTmplSetsReq
-	172, // 283: pbds.Data.ListTmplRevisionBoundUnnamedApps:input_type -> pbds.ListTmplRevisionBoundUnnamedAppsReq
-	174, // 284: pbds.Data.ListTmplRevisionBoundNamedApps:input_type -> pbds.ListTmplRevisionBoundNamedAppsReq
-	176, // 285: pbds.Data.ListTmplSetBoundUnnamedApps:input_type -> pbds.ListTmplSetBoundUnnamedAppsReq
-	178, // 286: pbds.Data.ListMultiTmplSetBoundUnnamedApps:input_type -> pbds.ListMultiTmplSetBoundUnnamedAppsReq
-	180, // 287: pbds.Data.ListTmplSetBoundNamedApps:input_type -> pbds.ListTmplSetBoundNamedAppsReq
-	182, // 288: pbds.Data.ListLatestTmplBoundUnnamedApps:input_type -> pbds.ListLatestTmplBoundUnnamedAppsReq
-	184, // 289: pbds.Data.CreateTemplateVariable:input_type -> pbds.CreateTemplateVariableReq
-	187, // 290: pbds.Data.ListTemplateVariables:input_type -> pbds.ListTemplateVariablesReq
-	189, // 291: pbds.Data.UpdateTemplateVariable:input_type -> pbds.UpdateTemplateVariableReq
-	190, // 292: pbds.Data.DeleteTemplateVariable:input_type -> pbds.DeleteTemplateVariableReq
-	185, // 293: pbds.Data.ImportTemplateVariables:input_type -> pbds.ImportTemplateVariablesReq
-	191, // 294: pbds.Data.CreateGroup:input_type -> pbds.CreateGroupReq
-	192, // 295: pbds.Data.ListAllGroups:input_type -> pbds.ListAllGroupsReq
-	194, // 296: pbds.Data.ListAppGroups:input_type -> pbds.ListAppGroupsReq
-	196, // 297: pbds.Data.GetGroupByName:input_type -> pbds.GetGroupByNameReq
-	197, // 298: pbds.Data.UpdateGroup:input_type -> pbds.UpdateGroupReq
-	198, // 299: pbds.Data.DeleteGroup:input_type -> pbds.DeleteGroupReq
-	199, // 300: pbds.Data.CountGroupsReleasedApps:input_type -> pbds.CountGroupsReleasedAppsReq
-	201, // 301: pbds.Data.ListGroupReleasedApps:input_type -> pbds.ListGroupReleasedAppsReq
-	203, // 302: pbds.Data.Publish:input_type -> pbds.PublishReq
-	204, // 303: pbds.Data.GenerateReleaseAndPublish:input_type -> pbds.GenerateReleaseAndPublishReq
-	9,   // 304: pbds.Data.CreateCredential:input_type -> pbds.CreateCredentialReq
-	10,  // 305: pbds.Data.ListCredentials:input_type -> pbds.ListCredentialReq
-	15,  // 306: pbds.Data.DeleteCredential:input_type -> pbds.DeleteCredentialReq
-	12,  // 307: pbds.Data.UpdateCredential:input_type -> pbds.UpdateCredentialReq
-	13,  // 308: pbds.Data.CheckCredentialName:input_type -> pbds.CheckCredentialNameReq
-	6,   // 309: pbds.Data.ListCredentialScopes:input_type -> pbds.ListCredentialScopesReq
-	0,   // 310: pbds.Data.UpdateCredentialScopes:input_type -> pbds.UpdateCredentialScopesReq
-	2,   // 311: pbds.Data.CredentialScopePreview:input_type -> pbds.CredentialScopePreviewReq
-	213, // 312: pbds.Data.CreateKv:input_type -> pbds.CreateKvReq
-	214, // 313: pbds.Data.UpdateKv:input_type -> pbds.UpdateKvReq
-	215, // 314: pbds.Data.ListKvs:input_type -> pbds.ListKvsReq
-	217, // 315: pbds.Data.DeleteKv:input_type -> pbds.DeleteKvReq
-	218, // 316: pbds.Data.BatchUpsertKvs:input_type -> pbds.BatchUpsertKvsReq
-	220, // 317: pbds.Data.UnDeleteKv:input_type -> pbds.UnDeleteKvReq
-	221, // 318: pbds.Data.UndoKv:input_type -> pbds.UndoKvReq
-	224, // 319: pbds.Data.ListClients:input_type -> pbds.ListClientsReq
-	225, // 320: pbds.Data.RetryClients:input_type -> pbds.RetryClientsReq
-	227, // 321: pbds.Data.ListClientEvents:input_type -> pbds.ListClientEventsReq
-	229, // 322: pbds.Data.ListClientQuerys:input_type -> pbds.ListClientQuerysReq
-	231, // 323: pbds.Data.CreateClientQuery:input_type -> pbds.CreateClientQueryReq
-	233, // 324: pbds.Data.UpdateClientQuery:input_type -> pbds.UpdateClientQueryReq
-	234, // 325: pbds.Data.DeleteClientQuery:input_type -> pbds.DeleteClientQueryReq
-	235, // 326: pbds.Data.CheckClientQueryName:input_type -> pbds.CheckClientQueryNameReq
-	339, // 327: pbds.Data.ClientConfigVersionStatistics:input_type -> pbclient.ClientCommonReq
-	339, // 328: pbds.Data.ClientPullTrendStatistics:input_type -> pbclient.ClientCommonReq
-	339, // 329: pbds.Data.ClientPullStatistics:input_type -> pbclient.ClientCommonReq
-	339, // 330: pbds.Data.ClientLabelStatistics:input_type -> pbclient.ClientCommonReq
-	339, // 331: pbds.Data.ClientAnnotationStatistics:input_type -> pbclient.ClientCommonReq
-	339, // 332: pbds.Data.ClientVersionStatistics:input_type -> pbclient.ClientCommonReq
-	237, // 333: pbds.Data.ListClientLabelAndAnnotation:input_type -> pbds.ListClientLabelAndAnnotationReq
-	339, // 334: pbds.Data.ClientSpecificFailedReason:input_type -> pbclient.ClientCommonReq
-	206, // 335: pbds.Data.ListInstances:input_type -> pbds.ListInstancesReq
-	209, // 336: pbds.Data.FetchInstanceInfo:input_type -> pbds.FetchInstanceInfoReq
-	212, // 337: pbds.Data.Ping:input_type -> pbds.PingMsg
-	222, // 338: pbds.Data.BatchUpsertClientMetrics:input_type -> pbds.BatchUpsertClientMetricsReq
-	17,  // 339: pbds.Data.CreateApp:output_type -> pbds.CreateResp
-	265, // 340: pbds.Data.UpdateApp:output_type -> pbapp.App
-	340, // 341: pbds.Data.DeleteApp:output_type -> pbbase.EmptyResp
-	265, // 342: pbds.Data.GetApp:output_type -> pbapp.App
-	265, // 343: pbds.Data.GetAppByID:output_type -> pbapp.App
-	265, // 344: pbds.Data.GetAppByName:output_type -> pbapp.App
-	27,  // 345: pbds.Data.ListAppsRest:output_type -> pbds.ListAppsResp
-	29,  // 346: pbds.Data.ListAppsByIDs:output_type -> pbds.ListAppsByIDsResp
-	17,  // 347: pbds.Data.CreateConfigItem:output_type -> pbds.CreateResp
-	32,  // 348: pbds.Data.BatchUpsertConfigItems:output_type -> pbds.BatchUpsertConfigItemsResp
-	340, // 349: pbds.Data.UpdateConfigItem:output_type -> pbbase.EmptyResp
-	340, // 350: pbds.Data.DeleteConfigItem:output_type -> pbbase.EmptyResp
-	340, // 351: pbds.Data.UnDeleteConfigItem:output_type -> pbbase.EmptyResp
-	340, // 352: pbds.Data.UndoConfigItem:output_type -> pbbase.EmptyResp
-	269, // 353: pbds.Data.GetConfigItem:output_type -> pbci.ConfigItem
-	39,  // 354: pbds.Data.ListConfigItems:output_type -> pbds.ListConfigItemsResp
-	41,  // 355: pbds.Data.ListReleasedConfigItems:output_type -> pbds.ListReleasedConfigItemsResp
-	43,  // 356: pbds.Data.ListConfigItemCount:output_type -> pbds.ListConfigItemCountResp
-	45,  // 357: pbds.Data.ListConfigItemByTuple:output_type -> pbds.ListConfigItemByTupleResp
-	340, // 358: pbds.Data.UpdateConfigHook:output_type -> pbbase.EmptyResp
-	17,  // 359: pbds.Data.CreateContent:output_type -> pbds.CreateResp
-	341, // 360: pbds.Data.GetContent:output_type -> pbcontent.Content
-	17,  // 361: pbds.Data.CreateCommit:output_type -> pbds.CreateResp
-	342, // 362: pbds.Data.GetLatestCommit:output_type -> pbcommit.Commit
-	17,  // 363: pbds.Data.CreateRelease:output_type -> pbds.CreateResp
-	52,  // 364: pbds.Data.ListReleases:output_type -> pbds.ListReleasesResp
-	277, // 365: pbds.Data.GetReleaseByName:output_type -> pbrelease.Release
-	277, // 366: pbds.Data.GetRelease:output_type -> pbrelease.Release
-	340, // 367: pbds.Data.DeprecateRelease:output_type -> pbbase.EmptyResp
-	340, // 368: pbds.Data.UnDeprecateRelease:output_type -> pbbase.EmptyResp
-	340, // 369: pbds.Data.DeleteRelease:output_type -> pbbase.EmptyResp
-	270, // 370: pbds.Data.GetReleasedConfigItem:output_type -> pbrci.ReleasedConfigItem
-	278, // 371: pbds.Data.GetReleasedKv:output_type -> pbrkv.ReleasedKv
-	61,  // 372: pbds.Data.ListReleasedKvs:output_type -> pbds.ListReleasedKvResp
-	17,  // 373: pbds.Data.CreateHook:output_type -> pbds.CreateResp
-	68,  // 374: pbds.Data.ListHooks:output_type -> pbds.ListHooksResp
-	340, // 375: pbds.Data.DeleteHook:output_type -> pbbase.EmptyResp
-	340, // 376: pbds.Data.UpdateHook:output_type -> pbbase.EmptyResp
-	69,  // 377: pbds.Data.ListHookTags:output_type -> pbds.ListHookTagResp
-	71,  // 378: pbds.Data.ListHookReferences:output_type -> pbds.ListHookReferencesResp
-	65,  // 379: pbds.Data.GetHook:output_type -> pbds.GetHookResp
-	17,  // 380: pbds.Data.CreateHookRevision:output_type -> pbds.CreateResp
-	76,  // 381: pbds.Data.ListHookRevisions:output_type -> pbds.ListHookRevisionsResp
-	337, // 382: pbds.Data.GetHookRevisionByID:output_type -> pbhr.HookRevision
-	340, // 383: pbds.Data.DeleteHookRevision:output_type -> pbbase.EmptyResp
-	340, // 384: pbds.Data.PublishHookRevision:output_type -> pbbase.EmptyResp
-	337, // 385: pbds.Data.GetHookRevisionByPubState:output_type -> pbhr.HookRevision
-	340, // 386: pbds.Data.UpdateHookRevision:output_type -> pbbase.EmptyResp
-	83,  // 387: pbds.Data.ListHookRevisionReferences:output_type -> pbds.ListHookRevisionReferencesResp
-	85,  // 388: pbds.Data.GetReleaseHook:output_type -> pbds.GetReleaseHookResp
-	17,  // 389: pbds.Data.CreateTemplateSpace:output_type -> pbds.CreateResp
-	88,  // 390: pbds.Data.ListTemplateSpaces:output_type -> pbds.ListTemplateSpacesResp
-	340, // 391: pbds.Data.UpdateTemplateSpace:output_type -> pbbase.EmptyResp
-	340, // 392: pbds.Data.DeleteTemplateSpace:output_type -> pbbase.EmptyResp
-	91,  // 393: pbds.Data.GetAllBizsOfTmplSpaces:output_type -> pbds.GetAllBizsOfTmplSpacesResp
-	17,  // 394: pbds.Data.CreateDefaultTmplSpace:output_type -> pbds.CreateResp
-	94,  // 395: pbds.Data.ListTmplSpacesByIDs:output_type -> pbds.ListTmplSpacesByIDsResp
-	17,  // 396: pbds.Data.CreateTemplate:output_type -> pbds.CreateResp
-	97,  // 397: pbds.Data.ListTemplates:output_type -> pbds.ListTemplatesResp
-	340, // 398: pbds.Data.UpdateTemplate:output_type -> pbbase.EmptyResp
-	340, // 399: pbds.Data.DeleteTemplate:output_type -> pbbase.EmptyResp
-	340, // 400: pbds.Data.BatchDeleteTemplate:output_type -> pbbase.EmptyResp
-	340, // 401: pbds.Data.AddTmplsToTmplSets:output_type -> pbbase.EmptyResp
-	340, // 402: pbds.Data.DeleteTmplsFromTmplSets:output_type -> pbbase.EmptyResp
-	104, // 403: pbds.Data.ListTemplatesByIDs:output_type -> pbds.ListTemplatesByIDsResp
-	106, // 404: pbds.Data.ListTemplatesNotBound:output_type -> pbds.ListTemplatesNotBoundResp
-	108, // 405: pbds.Data.ListTmplsOfTmplSet:output_type -> pbds.ListTmplsOfTmplSetResp
-	110, // 406: pbds.Data.ListTemplateByTuple:output_type -> pbds.ListTemplateByTupleReqResp
-	112, // 407: pbds.Data.BatchUpsertTemplates:output_type -> pbds.BatchUpsertTemplatesReqResp
-	17,  // 408: pbds.Data.CreateTemplateRevision:output_type -> pbds.CreateResp
-	115, // 409: pbds.Data.ListTemplateRevisions:output_type -> pbds.ListTemplateRevisionsResp
-	340, // 410: pbds.Data.DeleteTemplateRevision:output_type -> pbbase.EmptyResp
-	118, // 411: pbds.Data.ListTemplateRevisionsByIDs:output_type -> pbds.ListTemplateRevisionsByIDsResp
-	120, // 412: pbds.Data.ListTmplRevisionNamesByTmplIDs:output_type -> pbds.ListTmplRevisionNamesByTmplIDsResp
-	17,  // 413: pbds.Data.CreateTemplateSet:output_type -> pbds.CreateResp
-	123, // 414: pbds.Data.ListTemplateSets:output_type -> pbds.ListTemplateSetsResp
-	340, // 415: pbds.Data.UpdateTemplateSet:output_type -> pbbase.EmptyResp
-	340, // 416: pbds.Data.DeleteTemplateSet:output_type -> pbbase.EmptyResp
-	127, // 417: pbds.Data.ListAppTemplateSets:output_type -> pbds.ListAppTemplateSetsResp
-	129, // 418: pbds.Data.ListTemplateSetsByIDs:output_type -> pbds.ListTemplateSetsByIDsResp
-	131, // 419: pbds.Data.ListTemplateSetBriefInfoByIDs:output_type -> pbds.ListTemplateSetBriefInfoByIDsResp
-	133, // 420: pbds.Data.ListTmplSetsOfBiz:output_type -> pbds.ListTmplSetsOfBizResp
-	17,  // 421: pbds.Data.CreateAppTemplateBinding:output_type -> pbds.CreateResp
-	136, // 422: pbds.Data.ListAppTemplateBindings:output_type -> pbds.ListAppTemplateBindingsResp
-	340, // 423: pbds.Data.UpdateAppTemplateBinding:output_type -> pbbase.EmptyResp
-	340, // 424: pbds.Data.DeleteAppTemplateBinding:output_type -> pbbase.EmptyResp
-	140, // 425: pbds.Data.ListAppBoundTmplRevisions:output_type -> pbds.ListAppBoundTmplRevisionsResp
-	142, // 426: pbds.Data.ListReleasedAppBoundTmplRevisions:output_type -> pbds.ListReleasedAppBoundTmplRevisionsResp
-	144, // 427: pbds.Data.GetReleasedAppBoundTmplRevision:output_type -> pbds.GetReleasedAppBoundTmplRevisionResp
-	146, // 428: pbds.Data.CheckAppTemplateBinding:output_type -> pbds.CheckAppTemplateBindingResp
-	148, // 429: pbds.Data.ExtractAppTmplVariables:output_type -> pbds.ExtractAppTmplVariablesResp
-	150, // 430: pbds.Data.GetAppTmplVariableRefs:output_type -> pbds.GetAppTmplVariableRefsResp
-	152, // 431: pbds.Data.GetReleasedAppTmplVariableRefs:output_type -> pbds.GetReleasedAppTmplVariableRefsResp
-	340, // 432: pbds.Data.UpdateAppTmplVariables:output_type -> pbbase.EmptyResp
-	155, // 433: pbds.Data.ListAppTmplVariables:output_type -> pbds.ListAppTmplVariablesResp
-	157, // 434: pbds.Data.ListReleasedAppTmplVariables:output_type -> pbds.ListReleasedAppTmplVariablesResp
-	159, // 435: pbds.Data.ListTmplBoundCounts:output_type -> pbds.ListTmplBoundCountsResp
-	161, // 436: pbds.Data.ListTmplRevisionBoundCounts:output_type -> pbds.ListTmplRevisionBoundCountsResp
-	163, // 437: pbds.Data.ListTmplSetBoundCounts:output_type -> pbds.ListTmplSetBoundCountsResp
-	165, // 438: pbds.Data.ListTmplBoundUnnamedApps:output_type -> pbds.ListTmplBoundUnnamedAppsResp
-	167, // 439: pbds.Data.ListTmplBoundNamedApps:output_type -> pbds.ListTmplBoundNamedAppsResp
-	169, // 440: pbds.Data.ListTmplBoundTmplSets:output_type -> pbds.ListTmplBoundTmplSetsResp
-	171, // 441: pbds.Data.ListMultiTmplBoundTmplSets:output_type -> pbds.ListMultiTmplBoundTmplSetsResp
-	173, // 442: pbds.Data.ListTmplRevisionBoundUnnamedApps:output_type -> pbds.ListTmplRevisionBoundUnnamedAppsResp
-	175, // 443: pbds.Data.ListTmplRevisionBoundNamedApps:output_type -> pbds.ListTmplRevisionBoundNamedAppsResp
-	177, // 444: pbds.Data.ListTmplSetBoundUnnamedApps:output_type -> pbds.ListTmplSetBoundUnnamedAppsResp
-	179, // 445: pbds.Data.ListMultiTmplSetBoundUnnamedApps:output_type -> pbds.ListMultiTmplSetBoundUnnamedAppsResp
-	181, // 446: pbds.Data.ListTmplSetBoundNamedApps:output_type -> pbds.ListTmplSetBoundNamedAppsResp
-	183, // 447: pbds.Data.ListLatestTmplBoundUnnamedApps:output_type -> pbds.ListLatestTmplBoundUnnamedAppsResp
-	17,  // 448: pbds.Data.CreateTemplateVariable:output_type -> pbds.CreateResp
-	188, // 449: pbds.Data.ListTemplateVariables:output_type -> pbds.ListTemplateVariablesResp
-	340, // 450: pbds.Data.UpdateTemplateVariable:output_type -> pbbase.EmptyResp
-	340, // 451: pbds.Data.DeleteTemplateVariable:output_type -> pbbase.EmptyResp
-	186, // 452: pbds.Data.ImportTemplateVariables:output_type -> pbds.ImportTemplateVariablesResp
-	17,  // 453: pbds.Data.CreateGroup:output_type -> pbds.CreateResp
-	193, // 454: pbds.Data.ListAllGroups:output_type -> pbds.ListAllGroupsResp
-	195, // 455: pbds.Data.ListAppGroups:output_type -> pbds.ListAppGroupsResp
-	326, // 456: pbds.Data.GetGroupByName:output_type -> pbgroup.Group
-	340, // 457: pbds.Data.UpdateGroup:output_type -> pbbase.EmptyResp
-	340, // 458: pbds.Data.DeleteGroup:output_type -> pbbase.EmptyResp
-	200, // 459: pbds.Data.CountGroupsReleasedApps:output_type -> pbds.CountGroupsReleasedAppsResp
-	202, // 460: pbds.Data.ListGroupReleasedApps:output_type -> pbds.ListGroupReleasedAppsResp
-	205, // 461: pbds.Data.Publish:output_type -> pbds.PublishResp
-	205, // 462: pbds.Data.GenerateReleaseAndPublish:output_type -> pbds.PublishResp
-	17,  // 463: pbds.Data.CreateCredential:output_type -> pbds.CreateResp
-	11,  // 464: pbds.Data.ListCredentials:output_type -> pbds.ListCredentialResp
-	340, // 465: pbds.Data.DeleteCredential:output_type -> pbbase.EmptyResp
-	340, // 466: pbds.Data.UpdateCredential:output_type -> pbbase.EmptyResp
-	14,  // 467: pbds.Data.CheckCredentialName:output_type -> pbds.CheckCredentialNameResp
-	7,   // 468: pbds.Data.ListCredentialScopes:output_type -> pbds.ListCredentialScopesResp
-	1,   // 469: pbds.Data.UpdateCredentialScopes:output_type -> pbds.UpdateCredentialScopesResp
-	3,   // 470: pbds.Data.CredentialScopePreview:output_type -> pbds.CredentialScopePreviewResp
-	17,  // 471: pbds.Data.CreateKv:output_type -> pbds.CreateResp
-	340, // 472: pbds.Data.UpdateKv:output_type -> pbbase.EmptyResp
-	216, // 473: pbds.Data.ListKvs:output_type -> pbds.ListKvsResp
-	340, // 474: pbds.Data.DeleteKv:output_type -> pbbase.EmptyResp
-	219, // 475: pbds.Data.BatchUpsertKvs:output_type -> pbds.BatchUpsertKvsResp
-	340, // 476: pbds.Data.UnDeleteKv:output_type -> pbbase.EmptyResp
-	340, // 477: pbds.Data.UndoKv:output_type -> pbbase.EmptyResp
-	226, // 478: pbds.Data.ListClients:output_type -> pbds.ListClientsResp
-	340, // 479: pbds.Data.RetryClients:output_type -> pbbase.EmptyResp
-	228, // 480: pbds.Data.ListClientEvents:output_type -> pbds.ListClientEventsResp
-	230, // 481: pbds.Data.ListClientQuerys:output_type -> pbds.ListClientQuerysResp
-	232, // 482: pbds.Data.CreateClientQuery:output_type -> pbds.CreateClientQueryResp
-	340, // 483: pbds.Data.UpdateClientQuery:output_type -> pbbase.EmptyResp
-	340, // 484: pbds.Data.DeleteClientQuery:output_type -> pbbase.EmptyResp
-	236, // 485: pbds.Data.CheckClientQueryName:output_type -> pbds.CheckClientQueryNameResp
-	327, // 486: pbds.Data.ClientConfigVersionStatistics:output_type -> google.protobuf.Struct
-	327, // 487: pbds.Data.ClientPullTrendStatistics:output_type -> google.protobuf.Struct
-	327, // 488: pbds.Data.ClientPullStatistics:output_type -> google.protobuf.Struct
-	327, // 489: pbds.Data.ClientLabelStatistics:output_type -> google.protobuf.Struct
-	327, // 490: pbds.Data.ClientAnnotationStatistics:output_type -> google.protobuf.Struct
-	327, // 491: pbds.Data.ClientVersionStatistics:output_type -> google.protobuf.Struct
-	327, // 492: pbds.Data.ListClientLabelAndAnnotation:output_type -> google.protobuf.Struct
-	327, // 493: pbds.Data.ClientSpecificFailedReason:output_type -> google.protobuf.Struct
-	207, // 494: pbds.Data.ListInstances:output_type -> pbds.ListInstancesResp
-	210, // 495: pbds.Data.FetchInstanceInfo:output_type -> pbds.FetchInstanceInfoResp
-	212, // 496: pbds.Data.Ping:output_type -> pbds.PingMsg
-	223, // 497: pbds.Data.BatchUpsertClientMetrics:output_type -> pbds.BatchUpsertClientMetricsResp
-	339, // [339:498] is the sub-list for method output_type
-	180, // [180:339] is the sub-list for method input_type
-	180, // [180:180] is the sub-list for extension type_name
-	180, // [180:180] is the sub-list for extension extendee
-	0,   // [0:180] is the sub-list for field type_name
+	270, // 20: pbds.BatchUpsertConfigItemsReq.variables:type_name -> pbtv.TemplateVariableSpec
+	240, // 21: pbds.BatchUpsertConfigItemsReq.bindings:type_name -> pbds.BatchUpsertConfigItemsReq.TemplateBinding
+	267, // 22: pbds.UpdateConfigItemReq.attachment:type_name -> pbci.ConfigItemAttachment
+	268, // 23: pbds.UpdateConfigItemReq.spec:type_name -> pbci.ConfigItemSpec
+	267, // 24: pbds.DeleteConfigItemReq.attachment:type_name -> pbci.ConfigItemAttachment
+	267, // 25: pbds.UnDeleteConfigItemReq.attachment:type_name -> pbci.ConfigItemAttachment
+	267, // 26: pbds.UndoConfigItemReq.attachment:type_name -> pbci.ConfigItemAttachment
+	271, // 27: pbds.ListConfigItemsResp.details:type_name -> pbci.ConfigItem
+	272, // 28: pbds.ListReleasedConfigItemsResp.details:type_name -> pbrci.ReleasedConfigItem
+	273, // 29: pbds.ListConfigItemCountResp.details:type_name -> pbci.ListConfigItemCounts
+	241, // 30: pbds.ListConfigItemByTupleReq.items:type_name -> pbds.ListConfigItemByTupleReq.Item
+	271, // 31: pbds.ListConfigItemByTupleResp.config_items:type_name -> pbci.ConfigItem
+	274, // 32: pbds.CreateContentReq.attachment:type_name -> pbcontent.ContentAttachment
+	269, // 33: pbds.CreateContentReq.spec:type_name -> pbcontent.ContentSpec
+	275, // 34: pbds.CreateCommitReq.attachment:type_name -> pbcommit.CommitAttachment
+	276, // 35: pbds.CreateReleaseReq.attachment:type_name -> pbrelease.ReleaseAttachment
+	277, // 36: pbds.CreateReleaseReq.spec:type_name -> pbrelease.ReleaseSpec
+	270, // 37: pbds.CreateReleaseReq.variables:type_name -> pbtv.TemplateVariableSpec
+	278, // 38: pbds.ListReleasesResp.details:type_name -> pbrelease.Release
+	279, // 39: pbds.ListReleasedKvResp.details:type_name -> pbrkv.ReleasedKv
+	280, // 40: pbds.CreateHookReq.attachment:type_name -> pbhook.HookAttachment
+	281, // 41: pbds.CreateHookReq.spec:type_name -> pbhook.HookSpec
+	66,  // 42: pbds.GetHookResp.spec:type_name -> pbds.GetHookInfoSpec
+	280, // 43: pbds.GetHookResp.attachment:type_name -> pbhook.HookAttachment
+	282, // 44: pbds.GetHookResp.revision:type_name -> pbbase.Revision
+	242, // 45: pbds.GetHookInfoSpec.releases:type_name -> pbds.GetHookInfoSpec.Releases
+	243, // 46: pbds.ListHooksResp.details:type_name -> pbds.ListHooksResp.Detail
+	283, // 47: pbds.ListHookTagResp.details:type_name -> pbhook.CountHookTags
+	244, // 48: pbds.ListHookReferencesResp.details:type_name -> pbds.ListHookReferencesResp.Detail
+	280, // 49: pbds.UpdateHookReq.attachment:type_name -> pbhook.HookAttachment
+	281, // 50: pbds.UpdateHookReq.spec:type_name -> pbhook.HookSpec
+	284, // 51: pbds.CreateHookRevisionReq.attachment:type_name -> pbhr.HookRevisionAttachment
+	285, // 52: pbds.CreateHookRevisionReq.spec:type_name -> pbhr.HookRevisionSpec
+	245, // 53: pbds.ListHookRevisionsResp.details:type_name -> pbds.ListHookRevisionsResp.ListHookRevisionsData
+	284, // 54: pbds.UpdateHookRevisionReq.attachment:type_name -> pbhr.HookRevisionAttachment
+	285, // 55: pbds.UpdateHookRevisionReq.spec:type_name -> pbhr.HookRevisionSpec
+	246, // 56: pbds.ListHookRevisionReferencesResp.details:type_name -> pbds.ListHookRevisionReferencesResp.Detail
+	247, // 57: pbds.GetReleaseHookResp.pre_hook:type_name -> pbds.GetReleaseHookResp.Hook
+	247, // 58: pbds.GetReleaseHookResp.post_hook:type_name -> pbds.GetReleaseHookResp.Hook
+	286, // 59: pbds.CreateTemplateSpaceReq.attachment:type_name -> pbts.TemplateSpaceAttachment
+	287, // 60: pbds.CreateTemplateSpaceReq.spec:type_name -> pbts.TemplateSpaceSpec
+	288, // 61: pbds.ListTemplateSpacesResp.details:type_name -> pbts.TemplateSpace
+	286, // 62: pbds.UpdateTemplateSpaceReq.attachment:type_name -> pbts.TemplateSpaceAttachment
+	287, // 63: pbds.UpdateTemplateSpaceReq.spec:type_name -> pbts.TemplateSpaceSpec
+	286, // 64: pbds.DeleteTemplateSpaceReq.attachment:type_name -> pbts.TemplateSpaceAttachment
+	288, // 65: pbds.ListTmplSpacesByIDsResp.details:type_name -> pbts.TemplateSpace
+	289, // 66: pbds.CreateTemplateReq.attachment:type_name -> pbtemplate.TemplateAttachment
+	290, // 67: pbds.CreateTemplateReq.spec:type_name -> pbtemplate.TemplateSpec
+	291, // 68: pbds.CreateTemplateReq.tr_spec:type_name -> pbtr.TemplateRevisionSpec
+	292, // 69: pbds.ListTemplatesResp.details:type_name -> pbtemplate.Template
+	289, // 70: pbds.UpdateTemplateReq.attachment:type_name -> pbtemplate.TemplateAttachment
+	290, // 71: pbds.UpdateTemplateReq.spec:type_name -> pbtemplate.TemplateSpec
+	289, // 72: pbds.DeleteTemplateReq.attachment:type_name -> pbtemplate.TemplateAttachment
+	289, // 73: pbds.BatchDeleteTemplateReq.attachment:type_name -> pbtemplate.TemplateAttachment
+	292, // 74: pbds.ListTemplatesByIDsResp.details:type_name -> pbtemplate.Template
+	292, // 75: pbds.ListTemplatesNotBoundResp.details:type_name -> pbtemplate.Template
+	292, // 76: pbds.ListTmplsOfTmplSetResp.details:type_name -> pbtemplate.Template
+	248, // 77: pbds.ListTemplateByTupleReq.items:type_name -> pbds.ListTemplateByTupleReq.Item
+	249, // 78: pbds.ListTemplateByTupleReqResp.items:type_name -> pbds.ListTemplateByTupleReqResp.Item
+	250, // 79: pbds.BatchUpsertTemplatesReq.items:type_name -> pbds.BatchUpsertTemplatesReq.Item
+	293, // 80: pbds.CreateTemplateRevisionReq.attachment:type_name -> pbtr.TemplateRevisionAttachment
+	291, // 81: pbds.CreateTemplateRevisionReq.spec:type_name -> pbtr.TemplateRevisionSpec
+	294, // 82: pbds.ListTemplateRevisionsResp.details:type_name -> pbtr.TemplateRevision
+	293, // 83: pbds.DeleteTemplateRevisionReq.attachment:type_name -> pbtr.TemplateRevisionAttachment
+	294, // 84: pbds.ListTemplateRevisionsByIDsResp.details:type_name -> pbtr.TemplateRevision
+	295, // 85: pbds.ListTmplRevisionNamesByTmplIDsResp.details:type_name -> pbtr.TemplateRevisionNamesDetail
+	296, // 86: pbds.CreateTemplateSetReq.attachment:type_name -> pbtset.TemplateSetAttachment
+	297, // 87: pbds.CreateTemplateSetReq.spec:type_name -> pbtset.TemplateSetSpec
+	298, // 88: pbds.ListTemplateSetsResp.details:type_name -> pbtset.TemplateSet
+	296, // 89: pbds.UpdateTemplateSetReq.attachment:type_name -> pbtset.TemplateSetAttachment
+	297, // 90: pbds.UpdateTemplateSetReq.spec:type_name -> pbtset.TemplateSetSpec
+	296, // 91: pbds.DeleteTemplateSetReq.attachment:type_name -> pbtset.TemplateSetAttachment
+	298, // 92: pbds.ListAppTemplateSetsResp.details:type_name -> pbtset.TemplateSet
+	298, // 93: pbds.ListTemplateSetsByIDsResp.details:type_name -> pbtset.TemplateSet
+	299, // 94: pbds.ListTemplateSetBriefInfoByIDsResp.details:type_name -> pbtset.TemplateSetBriefInfo
+	300, // 95: pbds.ListTmplSetsOfBizResp.details:type_name -> pbtset.TemplateSetOfBizDetail
+	301, // 96: pbds.CreateAppTemplateBindingReq.attachment:type_name -> pbatb.AppTemplateBindingAttachment
+	302, // 97: pbds.CreateAppTemplateBindingReq.spec:type_name -> pbatb.AppTemplateBindingSpec
+	303, // 98: pbds.ListAppTemplateBindingsResp.details:type_name -> pbatb.AppTemplateBinding
+	301, // 99: pbds.UpdateAppTemplateBindingReq.attachment:type_name -> pbatb.AppTemplateBindingAttachment
+	302, // 100: pbds.UpdateAppTemplateBindingReq.spec:type_name -> pbatb.AppTemplateBindingSpec
+	301, // 101: pbds.DeleteAppTemplateBindingReq.attachment:type_name -> pbatb.AppTemplateBindingAttachment
+	304, // 102: pbds.ListAppBoundTmplRevisionsResp.details:type_name -> pbatb.AppBoundTmplRevision
+	305, // 103: pbds.ListReleasedAppBoundTmplRevisionsResp.details:type_name -> pbatb.ReleasedAppBoundTmplRevision
+	305, // 104: pbds.GetReleasedAppBoundTmplRevisionResp.detail:type_name -> pbatb.ReleasedAppBoundTmplRevision
+	301, // 105: pbds.CheckAppTemplateBindingReq.attachment:type_name -> pbatb.AppTemplateBindingAttachment
+	302, // 106: pbds.CheckAppTemplateBindingReq.spec:type_name -> pbatb.AppTemplateBindingSpec
+	306, // 107: pbds.CheckAppTemplateBindingResp.details:type_name -> pbatb.Conflict
+	307, // 108: pbds.GetAppTmplVariableRefsResp.details:type_name -> pbatv.AppTemplateVariableReference
+	307, // 109: pbds.GetReleasedAppTmplVariableRefsResp.details:type_name -> pbatv.AppTemplateVariableReference
+	308, // 110: pbds.UpdateAppTmplVariablesReq.attachment:type_name -> pbatv.AppTemplateVariableAttachment
+	309, // 111: pbds.UpdateAppTmplVariablesReq.spec:type_name -> pbatv.AppTemplateVariableSpec
+	270, // 112: pbds.ListAppTmplVariablesResp.details:type_name -> pbtv.TemplateVariableSpec
+	270, // 113: pbds.ListReleasedAppTmplVariablesResp.details:type_name -> pbtv.TemplateVariableSpec
+	310, // 114: pbds.ListTmplBoundCountsResp.details:type_name -> pbtbr.TemplateBoundCounts
+	311, // 115: pbds.ListTmplRevisionBoundCountsResp.details:type_name -> pbtbr.TemplateRevisionBoundCounts
+	312, // 116: pbds.ListTmplSetBoundCountsResp.details:type_name -> pbtbr.TemplateSetBoundCounts
+	313, // 117: pbds.ListTmplBoundUnnamedAppsResp.details:type_name -> pbtbr.TemplateBoundUnnamedAppDetail
+	314, // 118: pbds.ListTmplBoundNamedAppsResp.details:type_name -> pbtbr.TemplateBoundNamedAppDetail
+	315, // 119: pbds.ListTmplBoundTmplSetsResp.details:type_name -> pbtbr.TemplateBoundTemplateSetDetail
+	316, // 120: pbds.ListMultiTmplBoundTmplSetsResp.details:type_name -> pbtbr.MultiTemplateBoundTemplateSetDetail
+	317, // 121: pbds.ListTmplRevisionBoundUnnamedAppsResp.details:type_name -> pbtbr.TemplateRevisionBoundUnnamedAppDetail
+	318, // 122: pbds.ListTmplRevisionBoundNamedAppsResp.details:type_name -> pbtbr.TemplateRevisionBoundNamedAppDetail
+	319, // 123: pbds.ListTmplSetBoundUnnamedAppsResp.details:type_name -> pbtbr.TemplateSetBoundUnnamedAppDetail
+	320, // 124: pbds.ListMultiTmplSetBoundUnnamedAppsResp.details:type_name -> pbtbr.MultiTemplateSetBoundUnnamedAppDetail
+	321, // 125: pbds.ListTmplSetBoundNamedAppsResp.details:type_name -> pbtbr.TemplateSetBoundNamedAppDetail
+	322, // 126: pbds.ListLatestTmplBoundUnnamedAppsResp.details:type_name -> pbtbr.LatestTemplateBoundUnnamedAppDetail
+	323, // 127: pbds.CreateTemplateVariableReq.attachment:type_name -> pbtv.TemplateVariableAttachment
+	270, // 128: pbds.CreateTemplateVariableReq.spec:type_name -> pbtv.TemplateVariableSpec
+	270, // 129: pbds.ImportTemplateVariablesReq.specs:type_name -> pbtv.TemplateVariableSpec
+	324, // 130: pbds.ListTemplateVariablesResp.details:type_name -> pbtv.TemplateVariable
+	323, // 131: pbds.UpdateTemplateVariableReq.attachment:type_name -> pbtv.TemplateVariableAttachment
+	270, // 132: pbds.UpdateTemplateVariableReq.spec:type_name -> pbtv.TemplateVariableSpec
+	323, // 133: pbds.DeleteTemplateVariableReq.attachment:type_name -> pbtv.TemplateVariableAttachment
+	325, // 134: pbds.CreateGroupReq.attachment:type_name -> pbgroup.GroupAttachment
+	326, // 135: pbds.CreateGroupReq.spec:type_name -> pbgroup.GroupSpec
+	327, // 136: pbds.ListAllGroupsResp.details:type_name -> pbgroup.Group
+	251, // 137: pbds.ListAppGroupsResp.details:type_name -> pbds.ListAppGroupsResp.ListAppGroupsData
+	325, // 138: pbds.UpdateGroupReq.attachment:type_name -> pbgroup.GroupAttachment
+	326, // 139: pbds.UpdateGroupReq.spec:type_name -> pbgroup.GroupSpec
+	325, // 140: pbds.DeleteGroupReq.attachment:type_name -> pbgroup.GroupAttachment
+	252, // 141: pbds.CountGroupsReleasedAppsResp.data:type_name -> pbds.CountGroupsReleasedAppsResp.CountGroupsReleasedAppsData
+	253, // 142: pbds.ListGroupReleasedAppsResp.details:type_name -> pbds.ListGroupReleasedAppsResp.ListGroupReleasedAppsData
+	328, // 143: pbds.PublishReq.labels:type_name -> google.protobuf.Struct
+	270, // 144: pbds.GenerateReleaseAndPublishReq.variables:type_name -> pbtv.TemplateVariableSpec
+	328, // 145: pbds.GenerateReleaseAndPublishReq.labels:type_name -> google.protobuf.Struct
+	329, // 146: pbds.ListInstancesReq.page:type_name -> pbbase.BasePage
+	208, // 147: pbds.ListInstancesResp.details:type_name -> pbds.InstanceResource
+	211, // 148: pbds.FetchInstanceInfoResp.details:type_name -> pbds.InstanceInfo
+	330, // 149: pbds.CreateKvReq.attachment:type_name -> pbkv.KvAttachment
+	331, // 150: pbds.CreateKvReq.spec:type_name -> pbkv.KvSpec
+	330, // 151: pbds.UpdateKvReq.attachment:type_name -> pbkv.KvAttachment
+	331, // 152: pbds.UpdateKvReq.spec:type_name -> pbkv.KvSpec
+	332, // 153: pbds.ListKvsResp.details:type_name -> pbkv.Kv
+	331, // 154: pbds.DeleteKvReq.spec:type_name -> pbkv.KvSpec
+	330, // 155: pbds.DeleteKvReq.attachment:type_name -> pbkv.KvAttachment
+	254, // 156: pbds.BatchUpsertKvsReq.kvs:type_name -> pbds.BatchUpsertKvsReq.Kv
+	333, // 157: pbds.BatchUpsertClientMetricsReq.client_items:type_name -> pbclient.Client
+	334, // 158: pbds.BatchUpsertClientMetricsReq.client_event_items:type_name -> pbce.ClientEvent
+	255, // 159: pbds.ListClientsReq.order:type_name -> pbds.ListClientsReq.Order
+	335, // 160: pbds.ListClientsReq.search:type_name -> pbclient.ClientQueryCondition
+	256, // 161: pbds.ListClientsResp.details:type_name -> pbds.ListClientsResp.Item
+	257, // 162: pbds.ListClientEventsReq.order:type_name -> pbds.ListClientEventsReq.Order
+	334, // 163: pbds.ListClientEventsResp.details:type_name -> pbce.ClientEvent
+	336, // 164: pbds.ListClientQuerysResp.details:type_name -> pbcq.ClientQuery
+	328, // 165: pbds.CreateClientQueryReq.search_condition:type_name -> google.protobuf.Struct
+	328, // 166: pbds.UpdateClientQueryReq.search_condition:type_name -> google.protobuf.Struct
+	267, // 167: pbds.BatchUpsertConfigItemsReq.ConfigItem.config_item_attachment:type_name -> pbci.ConfigItemAttachment
+	268, // 168: pbds.BatchUpsertConfigItemsReq.ConfigItem.config_item_spec:type_name -> pbci.ConfigItemSpec
+	269, // 169: pbds.BatchUpsertConfigItemsReq.ConfigItem.content_spec:type_name -> pbcontent.ContentSpec
+	337, // 170: pbds.BatchUpsertConfigItemsReq.TemplateBinding.template_binding:type_name -> pbatb.TemplateBinding
+	338, // 171: pbds.ListHooksResp.Detail.hook:type_name -> pbhook.Hook
+	339, // 172: pbds.ListHookRevisionsResp.ListHookRevisionsData.hook_revision:type_name -> pbhr.HookRevision
+	292, // 173: pbds.ListTemplateByTupleReqResp.Item.template:type_name -> pbtemplate.Template
+	294, // 174: pbds.ListTemplateByTupleReqResp.Item.template_revision:type_name -> pbtr.TemplateRevision
+	292, // 175: pbds.BatchUpsertTemplatesReq.Item.template:type_name -> pbtemplate.Template
+	294, // 176: pbds.BatchUpsertTemplatesReq.Item.template_revision:type_name -> pbtr.TemplateRevision
+	328, // 177: pbds.ListAppGroupsResp.ListAppGroupsData.old_selector:type_name -> google.protobuf.Struct
+	328, // 178: pbds.ListAppGroupsResp.ListAppGroupsData.new_selector:type_name -> google.protobuf.Struct
+	330, // 179: pbds.BatchUpsertKvsReq.Kv.kv_attachment:type_name -> pbkv.KvAttachment
+	331, // 180: pbds.BatchUpsertKvsReq.Kv.kv_spec:type_name -> pbkv.KvSpec
+	333, // 181: pbds.ListClientsResp.Item.client:type_name -> pbclient.Client
+	20,  // 182: pbds.Data.CreateApp:input_type -> pbds.CreateAppReq
+	21,  // 183: pbds.Data.UpdateApp:input_type -> pbds.UpdateAppReq
+	22,  // 184: pbds.Data.DeleteApp:input_type -> pbds.DeleteAppReq
+	23,  // 185: pbds.Data.GetApp:input_type -> pbds.GetAppReq
+	24,  // 186: pbds.Data.GetAppByID:input_type -> pbds.GetAppByIDReq
+	25,  // 187: pbds.Data.GetAppByName:input_type -> pbds.GetAppByNameReq
+	26,  // 188: pbds.Data.ListAppsRest:input_type -> pbds.ListAppsRestReq
+	28,  // 189: pbds.Data.ListAppsByIDs:input_type -> pbds.ListAppsByIDsReq
+	30,  // 190: pbds.Data.CreateConfigItem:input_type -> pbds.CreateConfigItemReq
+	31,  // 191: pbds.Data.BatchUpsertConfigItems:input_type -> pbds.BatchUpsertConfigItemsReq
+	33,  // 192: pbds.Data.UpdateConfigItem:input_type -> pbds.UpdateConfigItemReq
+	34,  // 193: pbds.Data.DeleteConfigItem:input_type -> pbds.DeleteConfigItemReq
+	35,  // 194: pbds.Data.UnDeleteConfigItem:input_type -> pbds.UnDeleteConfigItemReq
+	36,  // 195: pbds.Data.UndoConfigItem:input_type -> pbds.UndoConfigItemReq
+	37,  // 196: pbds.Data.GetConfigItem:input_type -> pbds.GetConfigItemReq
+	38,  // 197: pbds.Data.ListConfigItems:input_type -> pbds.ListConfigItemsReq
+	40,  // 198: pbds.Data.ListReleasedConfigItems:input_type -> pbds.ListReleasedConfigItemsReq
+	42,  // 199: pbds.Data.ListConfigItemCount:input_type -> pbds.ListConfigItemCountReq
+	44,  // 200: pbds.Data.ListConfigItemByTuple:input_type -> pbds.ListConfigItemByTupleReq
+	18,  // 201: pbds.Data.UpdateConfigHook:input_type -> pbds.UpdateConfigHookReq
+	46,  // 202: pbds.Data.CreateContent:input_type -> pbds.CreateContentReq
+	47,  // 203: pbds.Data.GetContent:input_type -> pbds.GetContentReq
+	48,  // 204: pbds.Data.CreateCommit:input_type -> pbds.CreateCommitReq
+	49,  // 205: pbds.Data.GetLatestCommit:input_type -> pbds.GetLatestCommitReq
+	50,  // 206: pbds.Data.CreateRelease:input_type -> pbds.CreateReleaseReq
+	51,  // 207: pbds.Data.ListReleases:input_type -> pbds.ListReleasesReq
+	53,  // 208: pbds.Data.GetReleaseByName:input_type -> pbds.GetReleaseByNameReq
+	54,  // 209: pbds.Data.GetRelease:input_type -> pbds.GetReleaseReq
+	55,  // 210: pbds.Data.DeprecateRelease:input_type -> pbds.DeprecateReleaseReq
+	56,  // 211: pbds.Data.UnDeprecateRelease:input_type -> pbds.UnDeprecateReleaseReq
+	57,  // 212: pbds.Data.DeleteRelease:input_type -> pbds.DeleteReleaseReq
+	58,  // 213: pbds.Data.GetReleasedConfigItem:input_type -> pbds.GetReleasedCIReq
+	59,  // 214: pbds.Data.GetReleasedKv:input_type -> pbds.GetReleasedKvReq
+	60,  // 215: pbds.Data.ListReleasedKvs:input_type -> pbds.ListReleasedKvReq
+	62,  // 216: pbds.Data.CreateHook:input_type -> pbds.CreateHookReq
+	67,  // 217: pbds.Data.ListHooks:input_type -> pbds.ListHooksReq
+	72,  // 218: pbds.Data.DeleteHook:input_type -> pbds.DeleteHookReq
+	73,  // 219: pbds.Data.UpdateHook:input_type -> pbds.UpdateHookReq
+	63,  // 220: pbds.Data.ListHookTags:input_type -> pbds.ListHookTagReq
+	70,  // 221: pbds.Data.ListHookReferences:input_type -> pbds.ListHookReferencesReq
+	64,  // 222: pbds.Data.GetHook:input_type -> pbds.GetHookReq
+	74,  // 223: pbds.Data.CreateHookRevision:input_type -> pbds.CreateHookRevisionReq
+	75,  // 224: pbds.Data.ListHookRevisions:input_type -> pbds.ListHookRevisionsReq
+	77,  // 225: pbds.Data.GetHookRevisionByID:input_type -> pbds.GetHookRevisionByIdReq
+	78,  // 226: pbds.Data.DeleteHookRevision:input_type -> pbds.DeleteHookRevisionReq
+	79,  // 227: pbds.Data.PublishHookRevision:input_type -> pbds.PublishHookRevisionReq
+	80,  // 228: pbds.Data.GetHookRevisionByPubState:input_type -> pbds.GetByPubStateReq
+	81,  // 229: pbds.Data.UpdateHookRevision:input_type -> pbds.UpdateHookRevisionReq
+	82,  // 230: pbds.Data.ListHookRevisionReferences:input_type -> pbds.ListHookRevisionReferencesReq
+	84,  // 231: pbds.Data.GetReleaseHook:input_type -> pbds.GetReleaseHookReq
+	86,  // 232: pbds.Data.CreateTemplateSpace:input_type -> pbds.CreateTemplateSpaceReq
+	87,  // 233: pbds.Data.ListTemplateSpaces:input_type -> pbds.ListTemplateSpacesReq
+	89,  // 234: pbds.Data.UpdateTemplateSpace:input_type -> pbds.UpdateTemplateSpaceReq
+	90,  // 235: pbds.Data.DeleteTemplateSpace:input_type -> pbds.DeleteTemplateSpaceReq
+	340, // 236: pbds.Data.GetAllBizsOfTmplSpaces:input_type -> pbbase.EmptyReq
+	92,  // 237: pbds.Data.CreateDefaultTmplSpace:input_type -> pbds.CreateDefaultTmplSpaceReq
+	93,  // 238: pbds.Data.ListTmplSpacesByIDs:input_type -> pbds.ListTmplSpacesByIDsReq
+	95,  // 239: pbds.Data.CreateTemplate:input_type -> pbds.CreateTemplateReq
+	96,  // 240: pbds.Data.ListTemplates:input_type -> pbds.ListTemplatesReq
+	98,  // 241: pbds.Data.UpdateTemplate:input_type -> pbds.UpdateTemplateReq
+	99,  // 242: pbds.Data.DeleteTemplate:input_type -> pbds.DeleteTemplateReq
+	100, // 243: pbds.Data.BatchDeleteTemplate:input_type -> pbds.BatchDeleteTemplateReq
+	101, // 244: pbds.Data.AddTmplsToTmplSets:input_type -> pbds.AddTmplsToTmplSetsReq
+	102, // 245: pbds.Data.DeleteTmplsFromTmplSets:input_type -> pbds.DeleteTmplsFromTmplSetsReq
+	103, // 246: pbds.Data.ListTemplatesByIDs:input_type -> pbds.ListTemplatesByIDsReq
+	105, // 247: pbds.Data.ListTemplatesNotBound:input_type -> pbds.ListTemplatesNotBoundReq
+	107, // 248: pbds.Data.ListTmplsOfTmplSet:input_type -> pbds.ListTmplsOfTmplSetReq
+	109, // 249: pbds.Data.ListTemplateByTuple:input_type -> pbds.ListTemplateByTupleReq
+	111, // 250: pbds.Data.BatchUpsertTemplates:input_type -> pbds.BatchUpsertTemplatesReq
+	113, // 251: pbds.Data.CreateTemplateRevision:input_type -> pbds.CreateTemplateRevisionReq
+	114, // 252: pbds.Data.ListTemplateRevisions:input_type -> pbds.ListTemplateRevisionsReq
+	116, // 253: pbds.Data.DeleteTemplateRevision:input_type -> pbds.DeleteTemplateRevisionReq
+	117, // 254: pbds.Data.ListTemplateRevisionsByIDs:input_type -> pbds.ListTemplateRevisionsByIDsReq
+	119, // 255: pbds.Data.ListTmplRevisionNamesByTmplIDs:input_type -> pbds.ListTmplRevisionNamesByTmplIDsReq
+	121, // 256: pbds.Data.CreateTemplateSet:input_type -> pbds.CreateTemplateSetReq
+	122, // 257: pbds.Data.ListTemplateSets:input_type -> pbds.ListTemplateSetsReq
+	124, // 258: pbds.Data.UpdateTemplateSet:input_type -> pbds.UpdateTemplateSetReq
+	125, // 259: pbds.Data.DeleteTemplateSet:input_type -> pbds.DeleteTemplateSetReq
+	126, // 260: pbds.Data.ListAppTemplateSets:input_type -> pbds.ListAppTemplateSetsReq
+	128, // 261: pbds.Data.ListTemplateSetsByIDs:input_type -> pbds.ListTemplateSetsByIDsReq
+	130, // 262: pbds.Data.ListTemplateSetBriefInfoByIDs:input_type -> pbds.ListTemplateSetBriefInfoByIDsReq
+	132, // 263: pbds.Data.ListTmplSetsOfBiz:input_type -> pbds.ListTmplSetsOfBizReq
+	134, // 264: pbds.Data.CreateAppTemplateBinding:input_type -> pbds.CreateAppTemplateBindingReq
+	135, // 265: pbds.Data.ListAppTemplateBindings:input_type -> pbds.ListAppTemplateBindingsReq
+	137, // 266: pbds.Data.UpdateAppTemplateBinding:input_type -> pbds.UpdateAppTemplateBindingReq
+	138, // 267: pbds.Data.DeleteAppTemplateBinding:input_type -> pbds.DeleteAppTemplateBindingReq
+	139, // 268: pbds.Data.ListAppBoundTmplRevisions:input_type -> pbds.ListAppBoundTmplRevisionsReq
+	141, // 269: pbds.Data.ListReleasedAppBoundTmplRevisions:input_type -> pbds.ListReleasedAppBoundTmplRevisionsReq
+	143, // 270: pbds.Data.GetReleasedAppBoundTmplRevision:input_type -> pbds.GetReleasedAppBoundTmplRevisionReq
+	145, // 271: pbds.Data.CheckAppTemplateBinding:input_type -> pbds.CheckAppTemplateBindingReq
+	147, // 272: pbds.Data.ExtractAppTmplVariables:input_type -> pbds.ExtractAppTmplVariablesReq
+	149, // 273: pbds.Data.GetAppTmplVariableRefs:input_type -> pbds.GetAppTmplVariableRefsReq
+	151, // 274: pbds.Data.GetReleasedAppTmplVariableRefs:input_type -> pbds.GetReleasedAppTmplVariableRefsReq
+	153, // 275: pbds.Data.UpdateAppTmplVariables:input_type -> pbds.UpdateAppTmplVariablesReq
+	154, // 276: pbds.Data.ListAppTmplVariables:input_type -> pbds.ListAppTmplVariablesReq
+	156, // 277: pbds.Data.ListReleasedAppTmplVariables:input_type -> pbds.ListReleasedAppTmplVariablesReq
+	158, // 278: pbds.Data.ListTmplBoundCounts:input_type -> pbds.ListTmplBoundCountsReq
+	160, // 279: pbds.Data.ListTmplRevisionBoundCounts:input_type -> pbds.ListTmplRevisionBoundCountsReq
+	162, // 280: pbds.Data.ListTmplSetBoundCounts:input_type -> pbds.ListTmplSetBoundCountsReq
+	164, // 281: pbds.Data.ListTmplBoundUnnamedApps:input_type -> pbds.ListTmplBoundUnnamedAppsReq
+	166, // 282: pbds.Data.ListTmplBoundNamedApps:input_type -> pbds.ListTmplBoundNamedAppsReq
+	168, // 283: pbds.Data.ListTmplBoundTmplSets:input_type -> pbds.ListTmplBoundTmplSetsReq
+	170, // 284: pbds.Data.ListMultiTmplBoundTmplSets:input_type -> pbds.ListMultiTmplBoundTmplSetsReq
+	172, // 285: pbds.Data.ListTmplRevisionBoundUnnamedApps:input_type -> pbds.ListTmplRevisionBoundUnnamedAppsReq
+	174, // 286: pbds.Data.ListTmplRevisionBoundNamedApps:input_type -> pbds.ListTmplRevisionBoundNamedAppsReq
+	176, // 287: pbds.Data.ListTmplSetBoundUnnamedApps:input_type -> pbds.ListTmplSetBoundUnnamedAppsReq
+	178, // 288: pbds.Data.ListMultiTmplSetBoundUnnamedApps:input_type -> pbds.ListMultiTmplSetBoundUnnamedAppsReq
+	180, // 289: pbds.Data.ListTmplSetBoundNamedApps:input_type -> pbds.ListTmplSetBoundNamedAppsReq
+	182, // 290: pbds.Data.ListLatestTmplBoundUnnamedApps:input_type -> pbds.ListLatestTmplBoundUnnamedAppsReq
+	184, // 291: pbds.Data.CreateTemplateVariable:input_type -> pbds.CreateTemplateVariableReq
+	187, // 292: pbds.Data.ListTemplateVariables:input_type -> pbds.ListTemplateVariablesReq
+	189, // 293: pbds.Data.UpdateTemplateVariable:input_type -> pbds.UpdateTemplateVariableReq
+	190, // 294: pbds.Data.DeleteTemplateVariable:input_type -> pbds.DeleteTemplateVariableReq
+	185, // 295: pbds.Data.ImportTemplateVariables:input_type -> pbds.ImportTemplateVariablesReq
+	191, // 296: pbds.Data.CreateGroup:input_type -> pbds.CreateGroupReq
+	192, // 297: pbds.Data.ListAllGroups:input_type -> pbds.ListAllGroupsReq
+	194, // 298: pbds.Data.ListAppGroups:input_type -> pbds.ListAppGroupsReq
+	196, // 299: pbds.Data.GetGroupByName:input_type -> pbds.GetGroupByNameReq
+	197, // 300: pbds.Data.UpdateGroup:input_type -> pbds.UpdateGroupReq
+	198, // 301: pbds.Data.DeleteGroup:input_type -> pbds.DeleteGroupReq
+	199, // 302: pbds.Data.CountGroupsReleasedApps:input_type -> pbds.CountGroupsReleasedAppsReq
+	201, // 303: pbds.Data.ListGroupReleasedApps:input_type -> pbds.ListGroupReleasedAppsReq
+	203, // 304: pbds.Data.Publish:input_type -> pbds.PublishReq
+	204, // 305: pbds.Data.GenerateReleaseAndPublish:input_type -> pbds.GenerateReleaseAndPublishReq
+	9,   // 306: pbds.Data.CreateCredential:input_type -> pbds.CreateCredentialReq
+	10,  // 307: pbds.Data.ListCredentials:input_type -> pbds.ListCredentialReq
+	15,  // 308: pbds.Data.DeleteCredential:input_type -> pbds.DeleteCredentialReq
+	12,  // 309: pbds.Data.UpdateCredential:input_type -> pbds.UpdateCredentialReq
+	13,  // 310: pbds.Data.CheckCredentialName:input_type -> pbds.CheckCredentialNameReq
+	6,   // 311: pbds.Data.ListCredentialScopes:input_type -> pbds.ListCredentialScopesReq
+	0,   // 312: pbds.Data.UpdateCredentialScopes:input_type -> pbds.UpdateCredentialScopesReq
+	2,   // 313: pbds.Data.CredentialScopePreview:input_type -> pbds.CredentialScopePreviewReq
+	213, // 314: pbds.Data.CreateKv:input_type -> pbds.CreateKvReq
+	214, // 315: pbds.Data.UpdateKv:input_type -> pbds.UpdateKvReq
+	215, // 316: pbds.Data.ListKvs:input_type -> pbds.ListKvsReq
+	217, // 317: pbds.Data.DeleteKv:input_type -> pbds.DeleteKvReq
+	218, // 318: pbds.Data.BatchUpsertKvs:input_type -> pbds.BatchUpsertKvsReq
+	220, // 319: pbds.Data.UnDeleteKv:input_type -> pbds.UnDeleteKvReq
+	221, // 320: pbds.Data.UndoKv:input_type -> pbds.UndoKvReq
+	224, // 321: pbds.Data.ListClients:input_type -> pbds.ListClientsReq
+	225, // 322: pbds.Data.RetryClients:input_type -> pbds.RetryClientsReq
+	227, // 323: pbds.Data.ListClientEvents:input_type -> pbds.ListClientEventsReq
+	229, // 324: pbds.Data.ListClientQuerys:input_type -> pbds.ListClientQuerysReq
+	231, // 325: pbds.Data.CreateClientQuery:input_type -> pbds.CreateClientQueryReq
+	233, // 326: pbds.Data.UpdateClientQuery:input_type -> pbds.UpdateClientQueryReq
+	234, // 327: pbds.Data.DeleteClientQuery:input_type -> pbds.DeleteClientQueryReq
+	235, // 328: pbds.Data.CheckClientQueryName:input_type -> pbds.CheckClientQueryNameReq
+	341, // 329: pbds.Data.ClientConfigVersionStatistics:input_type -> pbclient.ClientCommonReq
+	341, // 330: pbds.Data.ClientPullTrendStatistics:input_type -> pbclient.ClientCommonReq
+	341, // 331: pbds.Data.ClientPullStatistics:input_type -> pbclient.ClientCommonReq
+	341, // 332: pbds.Data.ClientLabelStatistics:input_type -> pbclient.ClientCommonReq
+	341, // 333: pbds.Data.ClientAnnotationStatistics:input_type -> pbclient.ClientCommonReq
+	341, // 334: pbds.Data.ClientVersionStatistics:input_type -> pbclient.ClientCommonReq
+	237, // 335: pbds.Data.ListClientLabelAndAnnotation:input_type -> pbds.ListClientLabelAndAnnotationReq
+	341, // 336: pbds.Data.ClientSpecificFailedReason:input_type -> pbclient.ClientCommonReq
+	206, // 337: pbds.Data.ListInstances:input_type -> pbds.ListInstancesReq
+	209, // 338: pbds.Data.FetchInstanceInfo:input_type -> pbds.FetchInstanceInfoReq
+	212, // 339: pbds.Data.Ping:input_type -> pbds.PingMsg
+	222, // 340: pbds.Data.BatchUpsertClientMetrics:input_type -> pbds.BatchUpsertClientMetricsReq
+	17,  // 341: pbds.Data.CreateApp:output_type -> pbds.CreateResp
+	266, // 342: pbds.Data.UpdateApp:output_type -> pbapp.App
+	342, // 343: pbds.Data.DeleteApp:output_type -> pbbase.EmptyResp
+	266, // 344: pbds.Data.GetApp:output_type -> pbapp.App
+	266, // 345: pbds.Data.GetAppByID:output_type -> pbapp.App
+	266, // 346: pbds.Data.GetAppByName:output_type -> pbapp.App
+	27,  // 347: pbds.Data.ListAppsRest:output_type -> pbds.ListAppsResp
+	29,  // 348: pbds.Data.ListAppsByIDs:output_type -> pbds.ListAppsByIDsResp
+	17,  // 349: pbds.Data.CreateConfigItem:output_type -> pbds.CreateResp
+	32,  // 350: pbds.Data.BatchUpsertConfigItems:output_type -> pbds.BatchUpsertConfigItemsResp
+	342, // 351: pbds.Data.UpdateConfigItem:output_type -> pbbase.EmptyResp
+	342, // 352: pbds.Data.DeleteConfigItem:output_type -> pbbase.EmptyResp
+	342, // 353: pbds.Data.UnDeleteConfigItem:output_type -> pbbase.EmptyResp
+	342, // 354: pbds.Data.UndoConfigItem:output_type -> pbbase.EmptyResp
+	271, // 355: pbds.Data.GetConfigItem:output_type -> pbci.ConfigItem
+	39,  // 356: pbds.Data.ListConfigItems:output_type -> pbds.ListConfigItemsResp
+	41,  // 357: pbds.Data.ListReleasedConfigItems:output_type -> pbds.ListReleasedConfigItemsResp
+	43,  // 358: pbds.Data.ListConfigItemCount:output_type -> pbds.ListConfigItemCountResp
+	45,  // 359: pbds.Data.ListConfigItemByTuple:output_type -> pbds.ListConfigItemByTupleResp
+	342, // 360: pbds.Data.UpdateConfigHook:output_type -> pbbase.EmptyResp
+	17,  // 361: pbds.Data.CreateContent:output_type -> pbds.CreateResp
+	343, // 362: pbds.Data.GetContent:output_type -> pbcontent.Content
+	17,  // 363: pbds.Data.CreateCommit:output_type -> pbds.CreateResp
+	344, // 364: pbds.Data.GetLatestCommit:output_type -> pbcommit.Commit
+	17,  // 365: pbds.Data.CreateRelease:output_type -> pbds.CreateResp
+	52,  // 366: pbds.Data.ListReleases:output_type -> pbds.ListReleasesResp
+	278, // 367: pbds.Data.GetReleaseByName:output_type -> pbrelease.Release
+	278, // 368: pbds.Data.GetRelease:output_type -> pbrelease.Release
+	342, // 369: pbds.Data.DeprecateRelease:output_type -> pbbase.EmptyResp
+	342, // 370: pbds.Data.UnDeprecateRelease:output_type -> pbbase.EmptyResp
+	342, // 371: pbds.Data.DeleteRelease:output_type -> pbbase.EmptyResp
+	272, // 372: pbds.Data.GetReleasedConfigItem:output_type -> pbrci.ReleasedConfigItem
+	279, // 373: pbds.Data.GetReleasedKv:output_type -> pbrkv.ReleasedKv
+	61,  // 374: pbds.Data.ListReleasedKvs:output_type -> pbds.ListReleasedKvResp
+	17,  // 375: pbds.Data.CreateHook:output_type -> pbds.CreateResp
+	68,  // 376: pbds.Data.ListHooks:output_type -> pbds.ListHooksResp
+	342, // 377: pbds.Data.DeleteHook:output_type -> pbbase.EmptyResp
+	342, // 378: pbds.Data.UpdateHook:output_type -> pbbase.EmptyResp
+	69,  // 379: pbds.Data.ListHookTags:output_type -> pbds.ListHookTagResp
+	71,  // 380: pbds.Data.ListHookReferences:output_type -> pbds.ListHookReferencesResp
+	65,  // 381: pbds.Data.GetHook:output_type -> pbds.GetHookResp
+	17,  // 382: pbds.Data.CreateHookRevision:output_type -> pbds.CreateResp
+	76,  // 383: pbds.Data.ListHookRevisions:output_type -> pbds.ListHookRevisionsResp
+	339, // 384: pbds.Data.GetHookRevisionByID:output_type -> pbhr.HookRevision
+	342, // 385: pbds.Data.DeleteHookRevision:output_type -> pbbase.EmptyResp
+	342, // 386: pbds.Data.PublishHookRevision:output_type -> pbbase.EmptyResp
+	339, // 387: pbds.Data.GetHookRevisionByPubState:output_type -> pbhr.HookRevision
+	342, // 388: pbds.Data.UpdateHookRevision:output_type -> pbbase.EmptyResp
+	83,  // 389: pbds.Data.ListHookRevisionReferences:output_type -> pbds.ListHookRevisionReferencesResp
+	85,  // 390: pbds.Data.GetReleaseHook:output_type -> pbds.GetReleaseHookResp
+	17,  // 391: pbds.Data.CreateTemplateSpace:output_type -> pbds.CreateResp
+	88,  // 392: pbds.Data.ListTemplateSpaces:output_type -> pbds.ListTemplateSpacesResp
+	342, // 393: pbds.Data.UpdateTemplateSpace:output_type -> pbbase.EmptyResp
+	342, // 394: pbds.Data.DeleteTemplateSpace:output_type -> pbbase.EmptyResp
+	91,  // 395: pbds.Data.GetAllBizsOfTmplSpaces:output_type -> pbds.GetAllBizsOfTmplSpacesResp
+	17,  // 396: pbds.Data.CreateDefaultTmplSpace:output_type -> pbds.CreateResp
+	94,  // 397: pbds.Data.ListTmplSpacesByIDs:output_type -> pbds.ListTmplSpacesByIDsResp
+	17,  // 398: pbds.Data.CreateTemplate:output_type -> pbds.CreateResp
+	97,  // 399: pbds.Data.ListTemplates:output_type -> pbds.ListTemplatesResp
+	342, // 400: pbds.Data.UpdateTemplate:output_type -> pbbase.EmptyResp
+	342, // 401: pbds.Data.DeleteTemplate:output_type -> pbbase.EmptyResp
+	342, // 402: pbds.Data.BatchDeleteTemplate:output_type -> pbbase.EmptyResp
+	342, // 403: pbds.Data.AddTmplsToTmplSets:output_type -> pbbase.EmptyResp
+	342, // 404: pbds.Data.DeleteTmplsFromTmplSets:output_type -> pbbase.EmptyResp
+	104, // 405: pbds.Data.ListTemplatesByIDs:output_type -> pbds.ListTemplatesByIDsResp
+	106, // 406: pbds.Data.ListTemplatesNotBound:output_type -> pbds.ListTemplatesNotBoundResp
+	108, // 407: pbds.Data.ListTmplsOfTmplSet:output_type -> pbds.ListTmplsOfTmplSetResp
+	110, // 408: pbds.Data.ListTemplateByTuple:output_type -> pbds.ListTemplateByTupleReqResp
+	112, // 409: pbds.Data.BatchUpsertTemplates:output_type -> pbds.BatchUpsertTemplatesReqResp
+	17,  // 410: pbds.Data.CreateTemplateRevision:output_type -> pbds.CreateResp
+	115, // 411: pbds.Data.ListTemplateRevisions:output_type -> pbds.ListTemplateRevisionsResp
+	342, // 412: pbds.Data.DeleteTemplateRevision:output_type -> pbbase.EmptyResp
+	118, // 413: pbds.Data.ListTemplateRevisionsByIDs:output_type -> pbds.ListTemplateRevisionsByIDsResp
+	120, // 414: pbds.Data.ListTmplRevisionNamesByTmplIDs:output_type -> pbds.ListTmplRevisionNamesByTmplIDsResp
+	17,  // 415: pbds.Data.CreateTemplateSet:output_type -> pbds.CreateResp
+	123, // 416: pbds.Data.ListTemplateSets:output_type -> pbds.ListTemplateSetsResp
+	342, // 417: pbds.Data.UpdateTemplateSet:output_type -> pbbase.EmptyResp
+	342, // 418: pbds.Data.DeleteTemplateSet:output_type -> pbbase.EmptyResp
+	127, // 419: pbds.Data.ListAppTemplateSets:output_type -> pbds.ListAppTemplateSetsResp
+	129, // 420: pbds.Data.ListTemplateSetsByIDs:output_type -> pbds.ListTemplateSetsByIDsResp
+	131, // 421: pbds.Data.ListTemplateSetBriefInfoByIDs:output_type -> pbds.ListTemplateSetBriefInfoByIDsResp
+	133, // 422: pbds.Data.ListTmplSetsOfBiz:output_type -> pbds.ListTmplSetsOfBizResp
+	17,  // 423: pbds.Data.CreateAppTemplateBinding:output_type -> pbds.CreateResp
+	136, // 424: pbds.Data.ListAppTemplateBindings:output_type -> pbds.ListAppTemplateBindingsResp
+	342, // 425: pbds.Data.UpdateAppTemplateBinding:output_type -> pbbase.EmptyResp
+	342, // 426: pbds.Data.DeleteAppTemplateBinding:output_type -> pbbase.EmptyResp
+	140, // 427: pbds.Data.ListAppBoundTmplRevisions:output_type -> pbds.ListAppBoundTmplRevisionsResp
+	142, // 428: pbds.Data.ListReleasedAppBoundTmplRevisions:output_type -> pbds.ListReleasedAppBoundTmplRevisionsResp
+	144, // 429: pbds.Data.GetReleasedAppBoundTmplRevision:output_type -> pbds.GetReleasedAppBoundTmplRevisionResp
+	146, // 430: pbds.Data.CheckAppTemplateBinding:output_type -> pbds.CheckAppTemplateBindingResp
+	148, // 431: pbds.Data.ExtractAppTmplVariables:output_type -> pbds.ExtractAppTmplVariablesResp
+	150, // 432: pbds.Data.GetAppTmplVariableRefs:output_type -> pbds.GetAppTmplVariableRefsResp
+	152, // 433: pbds.Data.GetReleasedAppTmplVariableRefs:output_type -> pbds.GetReleasedAppTmplVariableRefsResp
+	342, // 434: pbds.Data.UpdateAppTmplVariables:output_type -> pbbase.EmptyResp
+	155, // 435: pbds.Data.ListAppTmplVariables:output_type -> pbds.ListAppTmplVariablesResp
+	157, // 436: pbds.Data.ListReleasedAppTmplVariables:output_type -> pbds.ListReleasedAppTmplVariablesResp
+	159, // 437: pbds.Data.ListTmplBoundCounts:output_type -> pbds.ListTmplBoundCountsResp
+	161, // 438: pbds.Data.ListTmplRevisionBoundCounts:output_type -> pbds.ListTmplRevisionBoundCountsResp
+	163, // 439: pbds.Data.ListTmplSetBoundCounts:output_type -> pbds.ListTmplSetBoundCountsResp
+	165, // 440: pbds.Data.ListTmplBoundUnnamedApps:output_type -> pbds.ListTmplBoundUnnamedAppsResp
+	167, // 441: pbds.Data.ListTmplBoundNamedApps:output_type -> pbds.ListTmplBoundNamedAppsResp
+	169, // 442: pbds.Data.ListTmplBoundTmplSets:output_type -> pbds.ListTmplBoundTmplSetsResp
+	171, // 443: pbds.Data.ListMultiTmplBoundTmplSets:output_type -> pbds.ListMultiTmplBoundTmplSetsResp
+	173, // 444: pbds.Data.ListTmplRevisionBoundUnnamedApps:output_type -> pbds.ListTmplRevisionBoundUnnamedAppsResp
+	175, // 445: pbds.Data.ListTmplRevisionBoundNamedApps:output_type -> pbds.ListTmplRevisionBoundNamedAppsResp
+	177, // 446: pbds.Data.ListTmplSetBoundUnnamedApps:output_type -> pbds.ListTmplSetBoundUnnamedAppsResp
+	179, // 447: pbds.Data.ListMultiTmplSetBoundUnnamedApps:output_type -> pbds.ListMultiTmplSetBoundUnnamedAppsResp
+	181, // 448: pbds.Data.ListTmplSetBoundNamedApps:output_type -> pbds.ListTmplSetBoundNamedAppsResp
+	183, // 449: pbds.Data.ListLatestTmplBoundUnnamedApps:output_type -> pbds.ListLatestTmplBoundUnnamedAppsResp
+	17,  // 450: pbds.Data.CreateTemplateVariable:output_type -> pbds.CreateResp
+	188, // 451: pbds.Data.ListTemplateVariables:output_type -> pbds.ListTemplateVariablesResp
+	342, // 452: pbds.Data.UpdateTemplateVariable:output_type -> pbbase.EmptyResp
+	342, // 453: pbds.Data.DeleteTemplateVariable:output_type -> pbbase.EmptyResp
+	186, // 454: pbds.Data.ImportTemplateVariables:output_type -> pbds.ImportTemplateVariablesResp
+	17,  // 455: pbds.Data.CreateGroup:output_type -> pbds.CreateResp
+	193, // 456: pbds.Data.ListAllGroups:output_type -> pbds.ListAllGroupsResp
+	195, // 457: pbds.Data.ListAppGroups:output_type -> pbds.ListAppGroupsResp
+	327, // 458: pbds.Data.GetGroupByName:output_type -> pbgroup.Group
+	342, // 459: pbds.Data.UpdateGroup:output_type -> pbbase.EmptyResp
+	342, // 460: pbds.Data.DeleteGroup:output_type -> pbbase.EmptyResp
+	200, // 461: pbds.Data.CountGroupsReleasedApps:output_type -> pbds.CountGroupsReleasedAppsResp
+	202, // 462: pbds.Data.ListGroupReleasedApps:output_type -> pbds.ListGroupReleasedAppsResp
+	205, // 463: pbds.Data.Publish:output_type -> pbds.PublishResp
+	205, // 464: pbds.Data.GenerateReleaseAndPublish:output_type -> pbds.PublishResp
+	17,  // 465: pbds.Data.CreateCredential:output_type -> pbds.CreateResp
+	11,  // 466: pbds.Data.ListCredentials:output_type -> pbds.ListCredentialResp
+	342, // 467: pbds.Data.DeleteCredential:output_type -> pbbase.EmptyResp
+	342, // 468: pbds.Data.UpdateCredential:output_type -> pbbase.EmptyResp
+	14,  // 469: pbds.Data.CheckCredentialName:output_type -> pbds.CheckCredentialNameResp
+	7,   // 470: pbds.Data.ListCredentialScopes:output_type -> pbds.ListCredentialScopesResp
+	1,   // 471: pbds.Data.UpdateCredentialScopes:output_type -> pbds.UpdateCredentialScopesResp
+	3,   // 472: pbds.Data.CredentialScopePreview:output_type -> pbds.CredentialScopePreviewResp
+	17,  // 473: pbds.Data.CreateKv:output_type -> pbds.CreateResp
+	342, // 474: pbds.Data.UpdateKv:output_type -> pbbase.EmptyResp
+	216, // 475: pbds.Data.ListKvs:output_type -> pbds.ListKvsResp
+	342, // 476: pbds.Data.DeleteKv:output_type -> pbbase.EmptyResp
+	219, // 477: pbds.Data.BatchUpsertKvs:output_type -> pbds.BatchUpsertKvsResp
+	342, // 478: pbds.Data.UnDeleteKv:output_type -> pbbase.EmptyResp
+	342, // 479: pbds.Data.UndoKv:output_type -> pbbase.EmptyResp
+	226, // 480: pbds.Data.ListClients:output_type -> pbds.ListClientsResp
+	342, // 481: pbds.Data.RetryClients:output_type -> pbbase.EmptyResp
+	228, // 482: pbds.Data.ListClientEvents:output_type -> pbds.ListClientEventsResp
+	230, // 483: pbds.Data.ListClientQuerys:output_type -> pbds.ListClientQuerysResp
+	232, // 484: pbds.Data.CreateClientQuery:output_type -> pbds.CreateClientQueryResp
+	342, // 485: pbds.Data.UpdateClientQuery:output_type -> pbbase.EmptyResp
+	342, // 486: pbds.Data.DeleteClientQuery:output_type -> pbbase.EmptyResp
+	236, // 487: pbds.Data.CheckClientQueryName:output_type -> pbds.CheckClientQueryNameResp
+	328, // 488: pbds.Data.ClientConfigVersionStatistics:output_type -> google.protobuf.Struct
+	328, // 489: pbds.Data.ClientPullTrendStatistics:output_type -> google.protobuf.Struct
+	328, // 490: pbds.Data.ClientPullStatistics:output_type -> google.protobuf.Struct
+	328, // 491: pbds.Data.ClientLabelStatistics:output_type -> google.protobuf.Struct
+	328, // 492: pbds.Data.ClientAnnotationStatistics:output_type -> google.protobuf.Struct
+	328, // 493: pbds.Data.ClientVersionStatistics:output_type -> google.protobuf.Struct
+	328, // 494: pbds.Data.ListClientLabelAndAnnotation:output_type -> google.protobuf.Struct
+	328, // 495: pbds.Data.ClientSpecificFailedReason:output_type -> google.protobuf.Struct
+	207, // 496: pbds.Data.ListInstances:output_type -> pbds.ListInstancesResp
+	210, // 497: pbds.Data.FetchInstanceInfo:output_type -> pbds.FetchInstanceInfoResp
+	212, // 498: pbds.Data.Ping:output_type -> pbds.PingMsg
+	223, // 499: pbds.Data.BatchUpsertClientMetrics:output_type -> pbds.BatchUpsertClientMetricsResp
+	341, // [341:500] is the sub-list for method output_type
+	182, // [182:341] is the sub-list for method input_type
+	182, // [182:182] is the sub-list for extension type_name
+	182, // [182:182] is the sub-list for extension extendee
+	0,   // [0:182] is the sub-list for field type_name
 }
 
 func init() { file_data_service_proto_init() }
@@ -23060,7 +23140,7 @@ func file_data_service_proto_init() {
 			}
 		}
 		file_data_service_proto_msgTypes[240].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListConfigItemByTupleReq_Item); i {
+			switch v := v.(*BatchUpsertConfigItemsReq_TemplateBinding); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -23072,7 +23152,7 @@ func file_data_service_proto_init() {
 			}
 		}
 		file_data_service_proto_msgTypes[241].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetHookInfoSpec_Releases); i {
+			switch v := v.(*ListConfigItemByTupleReq_Item); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -23084,7 +23164,7 @@ func file_data_service_proto_init() {
 			}
 		}
 		file_data_service_proto_msgTypes[242].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListHooksResp_Detail); i {
+			switch v := v.(*GetHookInfoSpec_Releases); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -23096,7 +23176,7 @@ func file_data_service_proto_init() {
 			}
 		}
 		file_data_service_proto_msgTypes[243].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListHookReferencesResp_Detail); i {
+			switch v := v.(*ListHooksResp_Detail); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -23108,7 +23188,7 @@ func file_data_service_proto_init() {
 			}
 		}
 		file_data_service_proto_msgTypes[244].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListHookRevisionsResp_ListHookRevisionsData); i {
+			switch v := v.(*ListHookReferencesResp_Detail); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -23120,7 +23200,7 @@ func file_data_service_proto_init() {
 			}
 		}
 		file_data_service_proto_msgTypes[245].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListHookRevisionReferencesResp_Detail); i {
+			switch v := v.(*ListHookRevisionsResp_ListHookRevisionsData); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -23132,7 +23212,7 @@ func file_data_service_proto_init() {
 			}
 		}
 		file_data_service_proto_msgTypes[246].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GetReleaseHookResp_Hook); i {
+			switch v := v.(*ListHookRevisionReferencesResp_Detail); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -23144,7 +23224,7 @@ func file_data_service_proto_init() {
 			}
 		}
 		file_data_service_proto_msgTypes[247].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListTemplateByTupleReq_Item); i {
+			switch v := v.(*GetReleaseHookResp_Hook); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -23156,7 +23236,7 @@ func file_data_service_proto_init() {
 			}
 		}
 		file_data_service_proto_msgTypes[248].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListTemplateByTupleReqResp_Item); i {
+			switch v := v.(*ListTemplateByTupleReq_Item); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -23168,7 +23248,7 @@ func file_data_service_proto_init() {
 			}
 		}
 		file_data_service_proto_msgTypes[249].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*BatchUpsertTemplatesReq_Item); i {
+			switch v := v.(*ListTemplateByTupleReqResp_Item); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -23180,7 +23260,7 @@ func file_data_service_proto_init() {
 			}
 		}
 		file_data_service_proto_msgTypes[250].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListAppGroupsResp_ListAppGroupsData); i {
+			switch v := v.(*BatchUpsertTemplatesReq_Item); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -23192,7 +23272,7 @@ func file_data_service_proto_init() {
 			}
 		}
 		file_data_service_proto_msgTypes[251].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CountGroupsReleasedAppsResp_CountGroupsReleasedAppsData); i {
+			switch v := v.(*ListAppGroupsResp_ListAppGroupsData); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -23204,7 +23284,7 @@ func file_data_service_proto_init() {
 			}
 		}
 		file_data_service_proto_msgTypes[252].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListGroupReleasedAppsResp_ListGroupReleasedAppsData); i {
+			switch v := v.(*CountGroupsReleasedAppsResp_CountGroupsReleasedAppsData); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -23216,7 +23296,7 @@ func file_data_service_proto_init() {
 			}
 		}
 		file_data_service_proto_msgTypes[253].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*BatchUpsertKvsReq_Kv); i {
+			switch v := v.(*ListGroupReleasedAppsResp_ListGroupReleasedAppsData); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -23228,7 +23308,7 @@ func file_data_service_proto_init() {
 			}
 		}
 		file_data_service_proto_msgTypes[254].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListClientsReq_Order); i {
+			switch v := v.(*BatchUpsertKvsReq_Kv); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -23240,7 +23320,7 @@ func file_data_service_proto_init() {
 			}
 		}
 		file_data_service_proto_msgTypes[255].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ListClientsResp_Item); i {
+			switch v := v.(*ListClientsReq_Order); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -23252,6 +23332,18 @@ func file_data_service_proto_init() {
 			}
 		}
 		file_data_service_proto_msgTypes[256].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ListClientsResp_Item); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_data_service_proto_msgTypes[257].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ListClientEventsReq_Order); i {
 			case 0:
 				return &v.state
@@ -23271,7 +23363,7 @@ func file_data_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_data_service_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   257,
+			NumMessages:   258,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

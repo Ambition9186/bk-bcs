@@ -29,6 +29,8 @@ type AppTemplateBinding interface {
 	// Create one app template binding instance.
 	Create(kit *kit.Kit, atb *table.AppTemplateBinding) (uint32, error)
 	// Update one app template binding's info.
+	CreateWithTx(kit *kit.Kit, tx *gen.QueryTx, atb *table.AppTemplateBinding) (uint32, error)
+	// Update one app template binding's info.
 	Update(kit *kit.Kit, atb *table.AppTemplateBinding) error
 	// UpdateWithTx Update one app template binding's info with transaction.
 	UpdateWithTx(kit *kit.Kit, tx *gen.QueryTx, atb *table.AppTemplateBinding) error
@@ -38,6 +40,8 @@ type AppTemplateBinding interface {
 	Delete(kit *kit.Kit, atb *table.AppTemplateBinding) error
 	// DeleteByAppIDWithTx delete one app template binding instance by app id with transaction.
 	DeleteByAppIDWithTx(kit *kit.Kit, tx *gen.QueryTx, appID uint32) error
+	// GetAppTemplateBindingByAppID 通过业务和服务ID获取模板绑定关系
+	GetAppTemplateBindingByAppID(kit *kit.Kit, bizID, appID uint32) (*table.AppTemplateBinding, error)
 }
 
 var _ AppTemplateBinding = new(appTemplateBindingDao)
@@ -46,6 +50,46 @@ type appTemplateBindingDao struct {
 	genQ     *gen.Query
 	idGen    IDGenInterface
 	auditDao AuditDao
+}
+
+// CreateWithTx implements AppTemplateBinding.
+func (dao *appTemplateBindingDao) CreateWithTx(kit *kit.Kit, tx *gen.QueryTx,
+	g *table.AppTemplateBinding) (uint32, error) {
+
+	if err := g.ValidateCreate(); err != nil {
+		return 0, err
+	}
+	if err := dao.validateAttachmentExist(kit, g.Attachment); err != nil {
+		return 0, err
+	}
+
+	// generate a app template binding id and update to app template binding.
+	id, err := dao.idGen.One(kit, table.Name(g.TableName()))
+	if err != nil {
+		return 0, err
+	}
+	g.ID = id
+
+	ad := dao.auditDao.DecoratorV2(kit, g.Attachment.BizID).PrepareCreate(g)
+
+	if err := tx.AppTemplateBinding.WithContext(kit.Ctx).Create(g); err != nil {
+		return 0, err
+	}
+
+	if err := ad.Do(tx.Query); err != nil {
+		return 0, fmt.Errorf("audit create app template binding failed, err: %v", err)
+	}
+
+	return id, nil
+}
+
+// GetAppTemplateBindingByAppID 通过业务和服务ID获取模板绑定关系
+func (dao *appTemplateBindingDao) GetAppTemplateBindingByAppID(kit *kit.Kit, bizID uint32, appID uint32) (
+	*table.AppTemplateBinding, error) {
+
+	m := dao.genQ.AppTemplateBinding
+	return dao.genQ.AppTemplateBinding.WithContext(kit.Ctx).
+		Where(m.BizID.Eq(bizID), m.AppID.Eq(appID)).Take()
 }
 
 // Create one app template binding instance.
