@@ -21,27 +21,30 @@ import (
 )
 
 const (
-	name        = "bk-bscp-test"
+	// Name 网关名
+	Name        = "bk-bscp-test"
 	env         = "prod"
 	description = "bk-bscp-test 网关描述"
 	host        = "http://bscp-api.sit.bktencent.com"
 )
 
 // ReleaseSwagger 导入swagge 文档
-func ReleaseSwagger(opt cc.ApiServerSetting, language, version string) error { // nolint
+// nolint:funlen
+func ReleaseSwagger(opt cc.ApiServerSetting, language, version string) error {
+
 	// 获取需要导入的文档
 	swaggerData, err := docs.Assets.ReadFile("swagger/bkapigw.swagger.json")
 	if err != nil {
 		return fmt.Errorf("reads and returns the content of the named file failed, err: %s", err.Error())
 	}
 	// 初始化网关
-	gw, err := NewApiGw(opt)
+	gw, err := NewApiGw(opt.Esb)
 	if err != nil {
 		return fmt.Errorf("init api gateway failed, err: %s", err.Error())
 	}
 
 	// 创建或者更新网关
-	syncApiResp, err := gw.SyncApi(name, &SyncApiReq{
+	syncApiResp, err := gw.SyncApi(Name, &SyncApiReq{
 		Description: description,
 		Maintainers: []string{"admin"},
 		IsPublic:    true,

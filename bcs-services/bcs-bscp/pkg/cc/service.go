@@ -135,6 +135,8 @@ type LoginAuthSettings struct {
 	Provider  string `yaml:"provider"`
 	UseESB    bool   `yaml:"useEsb"`
 	GWPubKey  string `yaml:"gwPubkey"`
+	// PrivateVersion 是否是私有化版本
+	PrivateVersion bool `yaml:"privateVersion"`
 }
 
 // trySetFlagBindIP try set flag bind ip.
