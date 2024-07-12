@@ -419,17 +419,31 @@ func (s *Service) AddTmplsToTmplSets(ctx context.Context, req *pbds.AddTmplsToTm
 	*pbbase.EmptyResp, error) {
 	kt := kit.FromGrpcContext(ctx)
 
-	if err := s.dao.Validator().ValidateTemplatesExist(kt, req.TemplateIds); err != nil {
+	var templateIds []uint32
+	var err error
+	// 判断是否排除操作
+	if req.ExclusionOperation {
+		// 判断是否指定套餐
+		templateIds, err = s.getExclusionOperationID(kt, req.BizId, req.TemplateSetId,
+			req.TemplateSpaceId, req.NoSetSpecified, req.TemplateIds)
+	} else {
+		templateIds = req.TemplateIds
+	}
+	if err != nil {
 		return nil, err
 	}
-	if err := s.dao.Validator().ValidateTmplSetsExist(kt, req.TemplateSetIds); err != nil {
+
+	if err = s.dao.Validator().ValidateTemplatesExist(kt, templateIds); err != nil {
+		return nil, err
+	}
+	if err = s.dao.Validator().ValidateTmplSetsExist(kt, req.TemplateSetIds); err != nil {
 		return nil, err
 	}
 
 	tx := s.dao.GenQuery().Begin()
 
 	// 1. add templates to template sets
-	if err := s.dao.TemplateSet().AddTmplsToTmplSetsWithTx(kt, tx, req.TemplateIds,
+	if err = s.dao.TemplateSet().AddTmplsToTmplSetsWithTx(kt, tx, templateIds,
 		req.TemplateSetIds); err != nil {
 		logs.Errorf(" add templates to template sets failed, err: %v, rid: %s", err, kt.Rid)
 		if rErr := tx.Rollback(); rErr != nil {
@@ -468,22 +482,78 @@ func (s *Service) AddTmplsToTmplSets(ctx context.Context, req *pbds.AddTmplsToTm
 	return new(pbbase.EmptyResp), nil
 }
 
+// 获取反向操作的ID
+func (s *Service) getExclusionOperationID(kt *kit.Kit, bizID, templateSetID, templateSpaceID uint32,
+	noSetSpecified bool, templateIds []uint32) ([]uint32, error) {
+
+	exclusiontemplateIDs := []uint32{}
+	var err error
+
+	// 指定套餐
+	if templateSetID != 0 {
+		templateSet, errS := s.dao.TemplateSet().GetByTemplateSetByID(kt, bizID, templateSetID)
+		if errS != nil {
+			return nil, errS
+		}
+		exclusiontemplateIDs = templateSet.Spec.TemplateIDs
+	}
+
+	// 全部配置文件
+	if templateSetID == 0 && !noSetSpecified {
+		exclusiontemplateIDs, err = s.dao.Template().ListAllIDs(kt, bizID, templateSpaceID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// 未指定套餐
+	if templateSetID == 0 && noSetSpecified {
+		idsAll, err := s.dao.Template().ListAllIDs(kt, bizID, templateSpaceID)
+		if err != nil {
+			logs.Errorf("list templates not bound failed, err: %v, rid: %s", err, kt.Rid)
+			return nil, err
+		}
+		idsBound, err := s.dao.TemplateSet().ListAllTemplateIDs(kt, bizID, templateSpaceID)
+		if err != nil {
+			logs.Errorf("list templates not bound failed, err: %v, rid: %s", err, kt.Rid)
+			return nil, err
+		}
+		exclusiontemplateIDs = tools.SliceDiff(idsAll, idsBound)
+	}
+
+	return tools.Difference(exclusiontemplateIDs, templateIds), nil
+}
+
 // DeleteTmplsFromTmplSets delete templates from template sets.
 func (s *Service) DeleteTmplsFromTmplSets(ctx context.Context, req *pbds.DeleteTmplsFromTmplSetsReq) (
 	*pbbase.EmptyResp, error) {
 	kt := kit.FromGrpcContext(ctx)
 
-	if err := s.dao.Validator().ValidateTemplatesExist(kt, req.TemplateIds); err != nil {
+	var templateIds []uint32
+	var err error
+	// 判断是否排除操作
+	if req.ExclusionOperation {
+		// 判断是否指定套餐
+		templateIds, err = s.getExclusionOperationID(kt, req.BizId, req.TemplateSetId,
+			req.TemplateSpaceId, req.NoSetSpecified, req.TemplateIds)
+	} else {
+		templateIds = req.GetTemplateIds()
+	}
+	if err != nil {
 		return nil, err
 	}
-	if err := s.dao.Validator().ValidateTmplSetsExist(kt, req.TemplateSetIds); err != nil {
+
+	if err = s.dao.Validator().ValidateTemplatesExist(kt, templateIds); err != nil {
+		return nil, err
+	}
+	if err = s.dao.Validator().ValidateTmplSetsExist(kt, req.TemplateSetIds); err != nil {
 		return nil, err
 	}
 
 	tx := s.dao.GenQuery().Begin()
 
 	// 1. delete templates from template sets
-	if err := s.dao.TemplateSet().DeleteTmplsFromTmplSetsWithTx(kt, tx, req.TemplateIds,
+	if err = s.dao.TemplateSet().DeleteTmplsFromTmplSetsWithTx(kt, tx, templateIds,
 		req.TemplateSetIds); err != nil {
 		logs.Errorf(" delete template from template sets failed, err: %v, rid: %s", err, kt.Rid)
 		if rErr := tx.Rollback(); rErr != nil {
@@ -965,8 +1035,22 @@ func (s *Service) BatchUpdateTemplatePermissions(ctx context.Context, req *pbds.
 	*pbds.BatchUpdateTemplatePermissionsResp, error) {
 	kt := kit.FromGrpcContext(ctx)
 
+	var templateIds []uint32
+	var err error
+	// 判断是否排除操作
+	if req.ExclusionOperation {
+		// 判断是否指定套餐
+		templateIds, err = s.getExclusionOperationID(kt, req.BizId, req.TemplateSetId,
+			req.TemplateSpaceId, req.NoSetSpecified, req.TemplateIds)
+	} else {
+		templateIds = req.GetTemplateIds()
+	}
+	if err != nil {
+		return nil, err
+	}
+
 	// 获取最新的模板配置
-	tmps, err := s.dao.TemplateRevision().ListLatestRevisionsGroupByTemplateIds(kt, req.GetTemplateIds())
+	tmps, err := s.dao.TemplateRevision().ListLatestRevisionsGroupByTemplateIds(kt, templateIds)
 	if err != nil {
 		return nil, errf.Errorf(errf.DBOpFailed,
 			i18n.T(kt, fmt.Sprintf("lists the latest version by template ids failed, err: %s", err.Error())))
@@ -1003,11 +1087,11 @@ func (s *Service) BatchUpdateTemplatePermissions(ctx context.Context, req *pbds.
 	}
 
 	ids := []uint32{}
-	templateIds := []uint32{}
+	templateIdsMap := []uint32{}
 	templateRevisionID := map[uint32]uint32{}
 	for _, v := range toCreate {
 		ids = append(ids, v.ID)
-		templateIds = append(templateIds, v.Attachment.TemplateID)
+		templateIdsMap = append(templateIdsMap, v.Attachment.TemplateID)
 		templateRevisionID[v.Attachment.TemplateID] = v.ID
 	}
 
@@ -1034,7 +1118,7 @@ func (s *Service) BatchUpdateTemplatePermissions(ctx context.Context, req *pbds.
 			item.Revision.Reviser = kt.User
 			item.Revision.UpdatedAt = now
 			item.Spec.TemplateRevisionIDs = tools.RemoveDuplicates(templateRevisionIDs)
-			item.Spec.LatestTemplateIDs = tools.RemoveDuplicates(tools.MergeAndDeduplicate(templateIds,
+			item.Spec.LatestTemplateIDs = tools.RemoveDuplicates(tools.MergeAndDeduplicate(templateIdsMap,
 				item.Spec.LatestTemplateIDs))
 		}
 

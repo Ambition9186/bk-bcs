@@ -59,6 +59,8 @@ type Template interface {
 	BatchUpdateWithTx(kit *kit.Kit, tx *gen.QueryTx, templates []*table.Template) error
 	// ListTemplateByTuple 按照多个字段in查询template 列表
 	ListTemplateByTuple(kit *kit.Kit, data [][]interface{}) ([]*table.Template, error)
+	// ListByExclusionIDs list templates by template exclusion ids.
+	ListByExclusionIDs(kit *kit.Kit, ids []uint32) ([]*table.Template, error)
 }
 
 var _ Template = new(templateDao)
@@ -67,6 +69,18 @@ type templateDao struct {
 	genQ     *gen.Query
 	idGen    IDGenInterface
 	auditDao AuditDao
+}
+
+// ListByExclusionIDs list templates by template exclusion ids.
+func (dao *templateDao) ListByExclusionIDs(kit *kit.Kit, ids []uint32) ([]*table.Template, error) {
+	m := dao.genQ.Template
+	q := dao.genQ.Template.WithContext(kit.Ctx)
+	result, err := q.Where(m.ID.NotIn(ids...)).Find()
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 // ListTemplateByTuple 按照多个字段in查询template 列表

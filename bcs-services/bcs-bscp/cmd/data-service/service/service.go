@@ -41,6 +41,7 @@ type Service struct {
 	tmplProc tmplprocess.TmplProcessor
 }
 
+
 // NewService create a service instance.
 func NewService(sd serviced.Service, daoSet dao.Set, vaultSet vault.Set) (*Service, error) {
 	state, ok := sd.(serviced.State)

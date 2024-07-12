@@ -92,6 +92,8 @@ service Data {
   rpc ListHookTags(ListHookTagReq) returns (ListHookTagResp) {}
   rpc ListHookReferences(ListHookReferencesReq) returns (ListHookReferencesResp) {}
   rpc GetHook(GetHookReq) returns (GetHookResp) {}
+  rpc HookFetchIDsExcluding(HookFetchIDsExcludingReq) returns (HookFetchIDsExcludingResp) {};
+  rpc GetHookReferencedIDs(GetHookReferencedIDsReq) returns (GetHookReferencedIDsResp) {};
 
   // hook revision related interface.
   rpc CreateHookRevision(CreateHookRevisionReq) returns (CreateResp) {}
@@ -187,6 +189,8 @@ service Data {
   rpc ListTemplateVariables(ListTemplateVariablesReq) returns (ListTemplateVariablesResp) {}
   rpc UpdateTemplateVariable(UpdateTemplateVariableReq) returns (pbbase.EmptyResp) {}
   rpc DeleteTemplateVariable(DeleteTemplateVariableReq) returns (pbbase.EmptyResp) {}
+  rpc TemplateVariableFetchIDsExcluding(TemplateVariableFetchIDsExcludingReq)
+      returns (TemplateVariableFetchIDsExcludingResp) {}
   rpc ImportTemplateVariables(ImportTemplateVariablesReq) returns (ImportTemplateVariablesResp) {}
 
   // group related interface.
@@ -225,6 +229,7 @@ service Data {
   rpc BatchUpsertKvs(BatchUpsertKvsReq) returns (BatchUpsertKvsResp) {};
   rpc UnDeleteKv(UnDeleteKvReq) returns (pbbase.EmptyResp) {};
   rpc UndoKv(UndoKvReq) returns (pbbase.EmptyResp) {};
+  rpc KvFetchIDsExcluding(KvFetchIDsExcludingReq) returns (KvFetchIDsExcludingResp) {};
 
   // client related interface
   rpc ListClients(ListClientsReq) returns (ListClientsResp) {};
@@ -670,6 +675,23 @@ message GetHookResp {
   pbbase.Revision revision = 4;
 }
 
+message HookFetchIDsExcludingReq {
+  uint32 biz_id = 1;
+  repeated uint32 ids = 2;
+}
+
+message HookFetchIDsExcludingResp {
+  repeated uint32 ids = 1;
+}
+
+message GetHookReferencedIDsReq {
+  uint32 biz_id = 1;
+}
+
+message GetHookReferencedIDsResp {
+  repeated uint32 ids = 1;
+}
+
 message GetHookInfoSpec {
   string name = 1;
   string type = 3;
@@ -702,6 +724,7 @@ message ListHooksResp {
   }
   uint32 count = 1;
   repeated Detail details = 2;
+  uint64 uncited_count = 3;
 }
 
 message ListHookTagResp {
@@ -935,6 +958,9 @@ message AddTmplsToTmplSetsReq {
   uint32 template_space_id = 2;
   repeated uint32 template_ids = 3;
   repeated uint32 template_set_ids = 4;
+  bool exclusion_operation = 5;
+  uint32 template_set_id = 6;  // 套餐ID, 具体操作的哪个套餐
+  bool no_set_specified = 7;   // 是否未指定套餐, 区分全部套餐和未指定套餐
 }
 
 message DeleteTmplsFromTmplSetsReq {
@@ -942,6 +968,9 @@ message DeleteTmplsFromTmplSetsReq {
   uint32 template_space_id = 2;
   repeated uint32 template_ids = 3;
   repeated uint32 template_set_ids = 4;
+  bool exclusion_operation = 5;
+  uint32 template_set_id = 6;  // 套餐ID, 具体操作的哪个套餐
+  bool no_set_specified = 7;   // 是否未指定套餐, 区分全部套餐和未指定套餐
 }
 
 message ListTemplatesByIDsReq {
@@ -1021,6 +1050,10 @@ message BatchUpdateTemplatePermissionsReq {
   string user_group = 4;
   string privilege = 5;
   repeated uint32 app_ids = 6;
+  bool exclusion_operation = 7;
+  uint32 template_set_id = 8;  // 套餐ID, 具体操作的哪个套餐
+  bool no_set_specified = 9;   // 是否未指定套餐, 区分全部套餐和未指定套餐
+  uint32 template_space_id = 10;
 }
 
 message BatchUpdateTemplatePermissionsResp {
@@ -1490,6 +1523,15 @@ message DeleteTemplateVariableReq {
   pbtv.TemplateVariableAttachment attachment = 2;
 }
 
+message TemplateVariableFetchIDsExcludingReq {
+  uint32 biz_id = 1;
+  repeated uint32 ids = 2;
+}
+
+message TemplateVariableFetchIDsExcludingResp {
+  repeated uint32 ids = 1;
+}
+
 message CreateGroupReq {
   pbgroup.GroupAttachment attachment = 1;
   pbgroup.GroupSpec spec = 2;
@@ -1707,6 +1749,16 @@ message UndoKvReq {
   string key = 3;
 }
 
+message KvFetchIDsExcludingReq {
+  uint32 biz_id = 1;
+  uint32 app_id = 2;
+  repeated uint32 ids = 3;
+}
+
+message KvFetchIDsExcludingResp {
+  repeated uint32 ids = 1;
+}
+
 message BatchUpsertClientMetricsReq {
   repeated pbclient.Client client_items = 1;
   repeated pbce.ClientEvent client_event_items = 2;
@@ -1734,6 +1786,7 @@ message RetryClientsReq {
   uint32 app_id = 2;
   repeated uint32 client_ids = 3;
   bool all = 4;
+  bool exclusion_operation = 5;
 }
 
 message ListClientsResp {

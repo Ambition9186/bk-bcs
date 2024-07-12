@@ -59,6 +59,8 @@ type Kv interface {
 		newKVStates table.KvState) error
 	// DeleteByStateWithTx deletes kv pairs with a specific state using a transaction
 	DeleteByStateWithTx(kit *kit.Kit, tx *gen.QueryTx, kv *table.Kv) error
+	// FetchIDsExcluding 获取指定ID后排除的ID
+	FetchIDsExcluding(kit *kit.Kit, bizID uint32, appID uint32, ids []uint32) ([]uint32, error)
 }
 
 var _ Kv = new(kvDao)
@@ -67,6 +69,21 @@ type kvDao struct {
 	genQ     *gen.Query
 	idGen    IDGenInterface
 	auditDao AuditDao
+}
+
+// FetchIDsExcluding 获取指定ID后排除的ID
+func (dao *kvDao) FetchIDsExcluding(kit *kit.Kit, bizID uint32, appID uint32, ids []uint32) ([]uint32, error) {
+	m := dao.genQ.Kv
+	q := dao.genQ.Kv.WithContext(kit.Ctx)
+
+	var result []uint32
+	if err := q.Select(m.ID).
+		Where(m.BizID.Eq(bizID), m.AppID.Eq(appID), m.ID.NotIn(ids...)).
+		Pluck(m.ID, &result); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 // BatchDeleteWithTx batch delete content instances with transaction.

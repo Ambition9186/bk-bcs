@@ -67,6 +67,8 @@ type TemplateSet interface {
 	ListAllTemplateIDs(kit *kit.Kit, bizID, templateSpaceID uint32) ([]uint32, error)
 	// ListAllTmplSetsOfBiz list all template sets of one biz
 	ListAllTmplSetsOfBiz(kit *kit.Kit, bizID, appID uint32) ([]*table.TemplateSet, error)
+	// GetByTemplateSetByID get template set by id
+	GetByTemplateSetByID(kit *kit.Kit, bizID, id uint32) (*table.TemplateSet, error)
 }
 
 var _ TemplateSet = new(templateSetDao)
@@ -75,6 +77,15 @@ type templateSetDao struct {
 	genQ     *gen.Query
 	idGen    IDGenInterface
 	auditDao AuditDao
+}
+
+// GetByTemplateSetByID get template set by id
+func (dao *templateSetDao) GetByTemplateSetByID(kit *kit.Kit, bizID uint32, id uint32) (
+	*table.TemplateSet, error) {
+	m := dao.genQ.TemplateSet
+	q := dao.genQ.TemplateSet.WithContext(kit.Ctx)
+
+	return q.Where(m.BizID.Eq(bizID), m.ID.Eq(id)).Take()
 }
 
 // Create one template set instance.

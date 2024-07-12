@@ -23,7 +23,9 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/dal/table"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/logs"
 	pbbase "github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/protocol/core/base"
@@ -908,7 +910,7 @@ func (s *Service) RetryClients(ctx context.Context, req *pbds.RetryClientsReq) (
 	kit := kit.FromGrpcContext(ctx)
 
 	if !req.All && len(req.ClientIds) == 0 {
-		return nil, fmt.Errorf("client ids is empty")
+		return nil, errf.Errorf(errf.InvalidArgument, i18n.T(kit, "client ids is empty"))
 	}
 
 	tx := s.dao.GenQuery().Begin()
@@ -924,29 +926,44 @@ func (s *Service) RetryClients(ctx context.Context, req *pbds.RetryClientsReq) (
 			Revision:   &table.CreatedRevision{Creator: kit.User},
 		}
 		if err := s.dao.Client().UpdateRetriedClientsStatusWithTx(kit, tx, []uint32{}, req.All); err != nil {
-			return nil, err
+			return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kit,
+				fmt.Sprintf("update client status failed, err: %v, rid: %s", err, kit.Rid)))
 		}
 		if err := s.dao.Event().Eventf(kit).FireWithTx(tx, event); err != nil {
-			return nil, err
+			return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kit,
+				fmt.Sprintf("event triggering failed, err: %v, rid: %s", err, kit.Rid)))
 		}
 		if err := tx.Commit(); err != nil {
 			logs.Errorf("commit retry clients transaction failed, err: %v, rid: %s", err, kit.Rid)
-			return nil, err
+			return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kit,
+				fmt.Sprintf("commit retry clients transaction failed, err: %v, rid: %s", err, kit.Rid)))
 		}
 		return &pbbase.EmptyResp{}, nil
 	}
 
-	events := make([]types.Event, 0, len(req.ClientIds))
-	clientUIDMap := make(map[uint32]string)
-	clients, err := s.dao.Client().ListClientByIDs(kit, req.BizId, req.AppId, req.ClientIds)
+	var clientIds []uint32
+	var err error
+	if req.ExclusionOperation {
+		clientIds, err = s.dao.Client().FetchIDsExcluding(kit, req.BizId, req.AppId, req.ClientIds)
+	} else {
+		clientIds = req.GetClientIds()
+	}
 	if err != nil {
-		return nil, err
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kit, "get the IDs excluded after the specified IDs"))
+	}
+
+	events := make([]types.Event, 0, len(clientIds))
+	clientUIDMap := make(map[uint32]string)
+	clients, err := s.dao.Client().ListClientByIDs(kit, req.BizId, req.AppId, clientIds)
+	if err != nil {
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kit,
+			fmt.Sprintf("listing clients by multiple IDs failed, err: %v, rid: %s", err, kit.Rid)))
 	}
 
 	for _, client := range clients {
 		clientUIDMap[client.ID] = client.Attachment.UID
 	}
-	for _, id := range req.ClientIds {
+	for _, id := range clientIds {
 		events = append(events, types.Event{
 			Spec: &table.EventSpec{
 				Resource:    table.RetryInstance,
@@ -958,15 +975,18 @@ func (s *Service) RetryClients(ctx context.Context, req *pbds.RetryClientsReq) (
 			Revision:   &table.CreatedRevision{Creator: kit.User},
 		})
 	}
-	if err := s.dao.Client().UpdateRetriedClientsStatusWithTx(kit, tx, req.ClientIds, req.All); err != nil {
-		return nil, err
+	if err := s.dao.Client().UpdateRetriedClientsStatusWithTx(kit, tx, clientIds, req.All); err != nil {
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kit,
+			fmt.Sprintf("update client status failed, err: %v, rid: %s", err, kit.Rid)))
 	}
 	if err := s.dao.Event().Eventf(kit).FireWithTx(tx, events...); err != nil {
-		return nil, err
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kit,
+			fmt.Sprintf("event triggering failed, err: %v, rid: %s", err, kit.Rid)))
 	}
 	if err := tx.Commit(); err != nil {
 		logs.Errorf("commit retry clients transaction failed, err: %v, rid: %s", err, kit.Rid)
-		return nil, err
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kit,
+			fmt.Sprintf("commit retry clients transaction failed, err: %v, rid: %s", err, kit.Rid)))
 	}
 
 	return &pbbase.EmptyResp{}, nil

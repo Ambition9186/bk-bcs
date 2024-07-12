@@ -73,6 +73,8 @@ type Client interface {
 	// UpdateRetriedClientsStatusWithTx batch update client release change failed status to
 	// processing status instances with transaction.
 	UpdateRetriedClientsStatusWithTx(kit *kit.Kit, tx *gen.QueryTx, ids []uint32, all bool) error
+	// FetchIDsExcluding 获取排除指定ID后的ID
+	FetchIDsExcluding(kit *kit.Kit, bizID uint32, appID uint32, ids []uint32) ([]uint32, error)
 }
 
 var _ Client = new(clientDao)
@@ -81,6 +83,22 @@ type clientDao struct {
 	genQ     *gen.Query
 	idGen    IDGenInterface
 	auditDao AuditDao
+}
+
+// FetchIDsExcluding 获取指定ID后排除的ID
+func (dao *clientDao) FetchIDsExcluding(kit *kit.Kit, bizID uint32, appID uint32, ids []uint32) ([]uint32, error) {
+
+	m := dao.genQ.Client
+	q := dao.genQ.Client.WithContext(kit.Ctx)
+
+	var result []uint32
+	if err := q.Select(m.ID).
+		Where(m.BizID.Eq(bizID), m.AppID.Eq(appID), m.ID.NotIn(ids...)).
+		Pluck(m.ID, &result); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 // UpdateRetriedClientsStatusWithTx batch update client release change failed status to
