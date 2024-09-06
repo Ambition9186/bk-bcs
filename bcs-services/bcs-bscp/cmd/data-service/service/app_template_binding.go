@@ -90,7 +90,7 @@ func (s *Service) ListAppTemplateBindings(ctx context.Context, req *pbds.ListApp
 	kt := kit.FromGrpcContext(ctx)
 
 	opt := &types.BasePage{Start: req.Start, Limit: uint(req.Limit), All: req.All}
-	if err := opt.Validate(types.DefaultPageOption); err != nil {
+	if err := opt.Validate(kt, types.DefaultPageOption); err != nil {
 		return nil, err
 	}
 
@@ -177,7 +177,7 @@ func (s *Service) ListAppBoundTmplRevisions(ctx context.Context,
 
 	// validate the page params
 	opt := &types.BasePage{Start: req.Start, Limit: uint(req.Limit), All: req.All}
-	if err := opt.Validate(types.DefaultPageOption); err != nil {
+	if err := opt.Validate(kt, types.DefaultPageOption); err != nil {
 		return nil, err
 	}
 
@@ -450,7 +450,7 @@ func (s *Service) ListReleasedAppBoundTmplRevisions(ctx context.Context,
 
 	// validate the page params
 	opt := &types.BasePage{Start: req.Start, Limit: uint(req.Limit), All: req.All}
-	if err := opt.Validate(types.DefaultPageOption); err != nil {
+	if err := opt.Validate(kt, types.DefaultPageOption); err != nil {
 		return nil, err
 	}
 

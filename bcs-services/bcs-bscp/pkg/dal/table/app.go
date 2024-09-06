@@ -13,7 +13,6 @@
 package table
 
 import (
-	"errors"
 	"time"
 
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
@@ -58,15 +57,15 @@ func (a *App) ResType() string {
 // ValidateCreate validate app's info when created.
 func (a *App) ValidateCreate(kit *kit.Kit) error {
 	if a.ID != 0 {
-		return errf.Errorf(errf.InvalidArgument, i18n.T(kit, "id can not be set"))
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if a.BizID <= 0 {
-		return errf.Errorf(errf.InvalidArgument, i18n.T(kit, "invalid biz id"))
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if a.Spec == nil {
-		return errf.Errorf(errf.InvalidArgument, i18n.T(kit, "invalid spec, is nil"))
+		return errf.ErrNoSpecF(kit)
 	}
 
 	if err := a.Spec.ValidateCreate(kit); err != nil {
@@ -74,10 +73,10 @@ func (a *App) ValidateCreate(kit *kit.Kit) error {
 	}
 
 	if a.Revision == nil {
-		return errors.New("invalid revision, is nil")
+		return errf.ErrNoRevisionF(kit)
 	}
 
-	if err := a.Revision.ValidateCreate(); err != nil {
+	if err := a.Revision.ValidateCreate(kit); err != nil {
 		return err
 	}
 
@@ -87,15 +86,15 @@ func (a *App) ValidateCreate(kit *kit.Kit) error {
 // ValidateUpdate validate app's info when update.
 func (a *App) ValidateUpdate(kit *kit.Kit, configType ConfigType) error {
 	if a.ID <= 0 {
-		return errf.Errorf(errf.InvalidArgument, i18n.T(kit, "id can not be set"))
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if a.BizID <= 0 {
-		return errf.Errorf(errf.InvalidArgument, i18n.T(kit, "invalid biz id"))
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if a.Spec == nil {
-		return errf.Errorf(errf.InvalidArgument, i18n.T(kit, "invalid spec, is nil"))
+		return errf.ErrNoSpecF(kit)
 	}
 
 	if err := a.Spec.ValidateUpdate(kit, configType); err != nil {
@@ -103,10 +102,10 @@ func (a *App) ValidateUpdate(kit *kit.Kit, configType ConfigType) error {
 	}
 
 	if a.Revision == nil {
-		return errors.New("invalid revision, is nil")
+		return errf.ErrNoRevisionF(kit)
 	}
 
-	if err := a.Revision.ValidateUpdate(); err != nil {
+	if err := a.Revision.ValidateUpdate(kit); err != nil {
 		return err
 	}
 
@@ -114,13 +113,13 @@ func (a *App) ValidateUpdate(kit *kit.Kit, configType ConfigType) error {
 }
 
 // ValidateDelete validate app's info when delete.
-func (a *App) ValidateDelete() error {
+func (a *App) ValidateDelete(kit *kit.Kit) error {
 	if a.ID <= 0 {
-		return errors.New("app id not set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if a.BizID <= 0 {
-		return errors.New("biz id not set")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	return nil

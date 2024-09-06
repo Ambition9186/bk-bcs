@@ -14,10 +14,11 @@ package table
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/enumor"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/validator"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/runtime/selector"
 )
@@ -66,11 +67,11 @@ func (g Group) ResType() string {
 func (g Group) ValidateCreate(kit *kit.Kit) error {
 
 	if g.ID > 0 {
-		return errors.New("id should not be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if g.Spec == nil {
-		return errors.New("spec not set")
+		return errf.ErrNoSpecF(kit)
 	}
 
 	if err := g.Spec.ValidateCreate(kit); err != nil {
@@ -78,18 +79,18 @@ func (g Group) ValidateCreate(kit *kit.Kit) error {
 	}
 
 	if g.Attachment == nil {
-		return errors.New("attachment not set")
+		return errf.ErrNoAttachmentF(kit)
 	}
 
-	if err := g.Attachment.Validate(); err != nil {
+	if err := g.Attachment.Validate(kit); err != nil {
 		return err
 	}
 
 	if g.Revision == nil {
-		return errors.New("revision not set")
+		return errf.ErrNoRevisionF(kit)
 	}
 
-	if err := g.Revision.ValidateCreate(); err != nil {
+	if err := g.Revision.ValidateCreate(kit); err != nil {
 		return err
 	}
 
@@ -100,7 +101,7 @@ func (g Group) ValidateCreate(kit *kit.Kit) error {
 func (g Group) ValidateUpdate(kit *kit.Kit) error {
 
 	if g.ID <= 0 {
-		return errors.New("id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	changed := false
@@ -112,22 +113,22 @@ func (g Group) ValidateUpdate(kit *kit.Kit) error {
 	}
 
 	if g.Attachment == nil {
-		return errors.New("attachment should be set")
+		return errf.ErrNoAttachmentF(kit)
 	}
 
 	if g.Attachment.BizID <= 0 {
-		return errors.New("biz id should be set")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if !changed {
-		return errors.New("nothing is found to be change")
+		return errors.New(i18n.T(kit, "nothing is found to be change"))
 	}
 
 	if g.Revision == nil {
-		return errors.New("revision not set")
+		return errf.ErrNoRevisionF(kit)
 	}
 
-	if err := g.Revision.ValidateUpdate(); err != nil {
+	if err := g.Revision.ValidateUpdate(kit); err != nil {
 		return err
 	}
 
@@ -135,13 +136,13 @@ func (g Group) ValidateUpdate(kit *kit.Kit) error {
 }
 
 // ValidateDelete validate the group's info when delete it.
-func (g Group) ValidateDelete() error {
+func (g Group) ValidateDelete(kit *kit.Kit) error {
 	if g.ID <= 0 {
-		return errors.New("group id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if g.Attachment.BizID <= 0 {
-		return errors.New("biz id should be set")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	return nil
@@ -192,13 +193,13 @@ func (g GroupMode) String() string {
 }
 
 // Validate strategy set type.
-func (g GroupMode) Validate() error {
+func (g GroupMode) Validate(kit *kit.Kit) error {
 	switch g {
 	case GroupModeCustom:
 	case GroupModeDebug:
 	case GroupModeDefault:
 	default:
-		return fmt.Errorf("unsupported group working mode: %s", g)
+		return errors.New(i18n.T(kit, "unsupported group working mode: %s", g))
 	}
 
 	return nil
@@ -209,23 +210,23 @@ func (g GroupSpec) ValidateCreate(kit *kit.Kit) error {
 	if err := validator.ValidateName(kit, g.Name); err != nil {
 		return err
 	}
-	if err := g.Mode.Validate(); err != nil {
+	if err := g.Mode.Validate(kit); err != nil {
 		return err
 	}
 	switch g.Mode {
 	case GroupModeCustom:
 		if g.Selector == nil || g.Selector.IsEmpty() {
-			return errors.New("group works in custom mode, selector should be set")
+			return errors.New(i18n.T(kit, "group works in custom mode, selector should be set"))
 		}
 		if err := g.Selector.Validate(); err != nil {
-			return fmt.Errorf("group works in custom mode, selector is invalid, err: %v", err)
+			return errors.New(i18n.T(kit, "group works in custom mode, selector is invalid, err: %v", err))
 		}
 	case GroupModeDebug:
 		if g.UID == "" {
-			return errors.New("group works in debug mode, uid should be set")
+			return errors.New(i18n.T(kit, "group works in debug mode, uid should be set"))
 		}
 	default:
-		return fmt.Errorf("unsupported group working mode: %s", g.Mode.String())
+		return errors.New(i18n.T(kit, "unsupported group working mode: %s", g.Mode.String()))
 	}
 	return nil
 }
@@ -237,17 +238,17 @@ func (g GroupSpec) ValidateUpdate(kit *kit.Kit) error {
 	}
 
 	if g.Mode != "" {
-		return errors.New("group's mode can not be updated")
+		return errors.New(i18n.T(kit, "group's mode can not be updated"))
 	}
 
 	if g.Selector == nil {
-		return errors.New("group's selector should be set")
+		return errors.New(i18n.T(kit, "group's selector should be set"))
 	}
 
 	// Note: at present, noly custom group's selector can be updated,
 	// so we don't need to check other mode's selector.
 	if err := g.Selector.Validate(); err != nil {
-		return fmt.Errorf("group's selector is invalid, err: %v", err)
+		return errors.New(i18n.T(kit, "%s, err: %v", i18n.ErrInvalidSelectorNotSet, err))
 	}
 
 	return nil
@@ -271,9 +272,9 @@ func (g GroupAttachment) IsEmpty() bool {
 }
 
 // Validate whether group attachment is valid or not.
-func (g GroupAttachment) Validate() error {
+func (g GroupAttachment) Validate(kit *kit.Kit) error {
 	if g.BizID <= 0 {
-		return errors.New("invalid attachment biz id")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 	return nil
 }

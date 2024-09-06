@@ -14,7 +14,10 @@ package table
 
 import (
 	"errors"
-	"fmt"
+
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 )
 
 // Event table's primary key reserved 500(as is [1, 500]) ids as
@@ -60,28 +63,28 @@ func (e *Event) ResType() string {
 }
 
 // ValidateCreate the event is valid or not when create it.
-func (e *Event) ValidateCreate() error {
+func (e *Event) ValidateCreate(kit *kit.Kit) error {
 	if e.ID > 0 {
-		return errors.New("id should not be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if e.Spec == nil {
-		return errors.New("spec not set")
+		return errf.ErrNoSpecF(kit)
 	}
 
-	if err := e.Spec.Validate(); err != nil {
+	if err := e.Spec.Validate(kit); err != nil {
 		return err
 	}
 
-	if err := e.Attachment.Validate(); err != nil {
+	if err := e.Attachment.Validate(kit); err != nil {
 		return err
 	}
 
 	if e.Revision == nil {
-		return errors.New("revision not set")
+		return errf.ErrNoRevisionF(kit)
 	}
 
-	if err := e.Revision.Validate(); err != nil {
+	if err := e.Revision.Validate(kit); err != nil {
 		return err
 	}
 
@@ -92,13 +95,13 @@ func (e *Event) ValidateCreate() error {
 type EventType string
 
 // Validate the event type
-func (e EventType) Validate() error {
+func (e EventType) Validate(kit *kit.Kit) error {
 	switch e {
 	case InsertOp:
 	case UpdateOp:
 	case DeleteOp:
 	default:
-		return fmt.Errorf("unknown event type: %s", e)
+		return errors.New(i18n.T(kit, "unknown event type: %s", e))
 	}
 
 	return nil
@@ -117,17 +120,17 @@ const (
 type EventResource string
 
 // Validate an event resource is valid or not.
-func (er EventResource) Validate() error {
+func (er EventResource) Validate(kit *kit.Kit) error {
 	switch er {
 	case CursorReminder:
-		return errors.New("event reminder resource is not allowed to be created")
+		return errors.New(i18n.T(kit, "event reminder resource is not allowed to be created"))
 	case Publish:
 	case Application:
 	case CredentialEvent:
 	case RetryApp:
 	case RetryInstance:
 	default:
-		return fmt.Errorf("unsupported event resource: %s", er)
+		return errors.New(i18n.T(kit, "unsupported event resource: %s", er))
 	}
 
 	return nil
@@ -164,17 +167,17 @@ type EventSpec struct {
 }
 
 // Validate event specifics
-func (e *EventSpec) Validate() error {
-	if err := e.Resource.Validate(); err != nil {
-		return fmt.Errorf("validate resource failed, err: %v", err)
+func (e *EventSpec) Validate(kit *kit.Kit) error {
+	if err := e.Resource.Validate(kit); err != nil {
+		return errors.New(i18n.T(kit, "validate resource failed, err: %v", err))
 	}
 
 	// at least one kind of resource id is set.
 	if e.ResourceID <= 0 && len(e.ResourceUid) == 0 {
-		return errors.New("invalid resource id or uid")
+		return errors.New(i18n.T(kit, "invalid resource id or uid"))
 	}
 
-	if err := e.OpType.Validate(); err != nil {
+	if err := e.OpType.Validate(kit); err != nil {
 		return err
 	}
 
@@ -188,9 +191,9 @@ type EventAttachment struct {
 }
 
 // Validate the event attachment is valid or not.
-func (ea *EventAttachment) Validate() error {
+func (ea *EventAttachment) Validate(kit *kit.Kit) error {
 	if ea.BizID <= 0 {
-		return errors.New("invalid biz id")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	return nil

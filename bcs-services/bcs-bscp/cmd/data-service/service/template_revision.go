@@ -109,7 +109,7 @@ func (s *Service) ListTemplateRevisions(ctx context.Context,
 	kt := kit.FromGrpcContext(ctx)
 
 	opt := &types.BasePage{Start: req.Start, Limit: uint(req.Limit), All: req.All}
-	if err := opt.Validate(types.DefaultPageOption); err != nil {
+	if err := opt.Validate(kt, types.DefaultPageOption); err != nil {
 		return nil, err
 	}
 

@@ -994,7 +994,7 @@ func (s *Service) ListConfigItems(ctx context.Context, req *pbds.ListConfigItems
 
 	// validate the page params
 	opt := &types.BasePage{Start: req.Start, Limit: uint(req.Limit), All: req.All}
-	if err := opt.Validate(types.DefaultPageOption); err != nil {
+	if err := opt.Validate(grpcKit, types.DefaultPageOption); err != nil {
 		return nil, err
 	}
 
@@ -1002,7 +1002,7 @@ func (s *Service) ListConfigItems(ctx context.Context, req *pbds.ListConfigItems
 	details, err := s.dao.ConfigItem().ListAllByAppID(grpcKit, req.AppId, req.BizId)
 	if err != nil {
 		logs.Errorf("list editing config items failed, err: %v, rid: %s", err, grpcKit.Rid)
-		return nil, err
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(grpcKit, "list editing config items failed, err: %v", err))
 	}
 	configItems := make([]*pbci.ConfigItem, 0)
 	// if WithStatus is true, the config items includes the deleted ones and file state, else  without these data
@@ -1011,14 +1011,14 @@ func (s *Service) ListConfigItems(ctx context.Context, req *pbds.ListConfigItems
 		fileReleased, err = s.dao.ReleasedCI().GetReleasedLately(grpcKit, req.BizId, req.AppId)
 		if err != nil {
 			logs.Errorf("get released failed, err: %v, rid: %s", err, grpcKit.Rid)
-			return nil, err
+			return nil, errf.Errorf(errf.DBOpFailed, i18n.T(grpcKit, "get released failed, err: %v", err))
 		}
 
 		var commits []*table.Commit
 		commits, err = s.dao.Commit().ListAppLatestCommits(grpcKit, req.BizId, req.AppId)
 		if err != nil {
 			logs.Errorf("get commit, err: %v, rid: %s", err, grpcKit.Rid)
-			return nil, err
+			return nil, errf.Errorf(errf.DBOpFailed, i18n.T(grpcKit, "get latest commit content failed, err: %v", err))
 		}
 		configItems = pbrci.PbConfigItemState(details, fileReleased, commits, req.Status)
 	} else {
@@ -1149,7 +1149,7 @@ func (s *Service) setCommitSpecForCIs(kt *kit.Kit, cis []*pbci.ConfigItem) error
 	commits, err := s.dao.Commit().BatchListLatestCommits(kt, kt.BizID, kt.AppID, ids)
 	if err != nil {
 		logs.Errorf("batch list latest commits failed, err: %v, rid: %s", err, kt.Rid)
-		return err
+		return errf.Errorf(errf.DBOpFailed, i18n.T(kt, "list all config items failed, err: %v", err))
 	}
 	commitMap := make(map[uint32]*table.CommitSpec, len(commits))
 	for _, c := range commits {

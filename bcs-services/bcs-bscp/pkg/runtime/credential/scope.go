@@ -14,11 +14,14 @@
 package credential
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/gobwas/glob"
 
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/tools"
 )
 
@@ -26,14 +29,14 @@ import (
 type Scope string
 
 // Validate validate a credential scope is valid or not.
-func (cs Scope) Validate() error {
+func (cs Scope) Validate(kit *kit.Kit) error {
 	strs := strings.Split(string(cs), "/")
 	if len(strs) < 2 {
-		return fmt.Errorf("invalid credential scope %s", string(cs))
+		return errors.New(i18n.T(kit, "invalid credential scope %s", string(cs)))
 	}
 	for _, str := range strs {
 		if len(str) == 0 {
-			return fmt.Errorf("invalid credential scope %s", string(cs))
+			return errors.New(i18n.T(kit, "invalid credential scope %s", string(cs)))
 		}
 	}
 	return nil
@@ -52,40 +55,40 @@ func (cs Scope) Split() (app string, scope string, err error) {
 }
 
 // MatchApp checks if the credential scope matches the app name.
-func (cs Scope) MatchApp(name string) (bool, error) {
-	if err := cs.Validate(); err != nil {
+func (cs Scope) MatchApp(kit *kit.Kit, name string) (bool, error) {
+	if err := cs.Validate(kit); err != nil {
 		return false, err
 	}
 
 	appPattern := strings.Split(string(cs), "/")[0]
 	g, err := glob.Compile(appPattern)
 	if err != nil {
-		return false, err
+		return false, errors.New(i18n.T(kit, "checks if the credential scope matches the app name failed, err: %v", err))
 	}
 	return g.Match(name), nil
 }
 
 // MatchConfigItem checks if the credential scope matches the config item.
-func (cs Scope) MatchConfigItem(path, name string) (bool, error) {
-	if err := cs.Validate(); err != nil {
+func (cs Scope) MatchConfigItem(kit *kit.Kit, path, name string) (bool, error) {
+	if err := cs.Validate(kit); err != nil {
 		return false, err
 	}
 	configItemPattern := strings.SplitN(string(cs), "/", 2)[1]
 	ok, err := tools.MatchConfigItem(configItemPattern, path, name)
 	if err != nil {
-		return false, err
+		return false, errors.New(i18n.T(kit, "checks if the credential scope matches the config item failed, err: %v", err))
 	}
 	return ok, nil
 }
 
 // New 通过 app scope 组装
-func New(app string, scope string) (Scope, error) {
+func New(kit *kit.Kit, app string, scope string) (Scope, error) {
 	if len(app) == 0 {
-		return "", fmt.Errorf("app is required")
+		return "", errors.New(i18n.T(kit, "app is required"))
 	}
 
 	if len(scope) == 0 {
-		return "", fmt.Errorf("scope is required")
+		return "", errors.New(i18n.T(kit, "scope is required"))
 	}
 
 	return Scope(app + scope), nil

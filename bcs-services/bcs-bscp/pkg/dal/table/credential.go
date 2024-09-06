@@ -14,10 +14,11 @@ package table
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/validator"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 )
 
@@ -54,11 +55,11 @@ func (c *Credential) ResType() string {
 func (c *Credential) ValidateCreate(kit *kit.Kit) error {
 
 	if c.ID > 0 {
-		return errors.New("id should not be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if c.Spec == nil {
-		return errors.New("spec not set")
+		return errf.ErrNoSpecF(kit)
 	}
 
 	if err := c.Spec.ValidateCreate(kit); err != nil {
@@ -66,18 +67,18 @@ func (c *Credential) ValidateCreate(kit *kit.Kit) error {
 	}
 
 	if c.Attachment == nil {
-		return errors.New("attachment not set")
+		return errf.ErrNoAttachmentF(kit)
 	}
 
-	if err := c.Attachment.Validate(); err != nil {
+	if err := c.Attachment.Validate(kit); err != nil {
 		return err
 	}
 
 	if c.Revision == nil {
-		return errors.New("revision not set")
+		return errf.ErrNoRevisionF(kit)
 	}
 
-	if err := c.Revision.ValidateCreate(); err != nil {
+	if err := c.Revision.ValidateCreate(kit); err != nil {
 		return err
 	}
 
@@ -104,14 +105,14 @@ const (
 type CredentialType string
 
 // Validate validate the credential type
-func (s CredentialType) Validate() error {
+func (s CredentialType) Validate(kit *kit.Kit) error {
 	if s == "" {
 		return nil
 	}
 	switch s {
 	case BearToken:
 	default:
-		return fmt.Errorf("unsupported credential type: %s", s)
+		return errors.New(i18n.T(kit, "unsupported credential type: %s", s))
 	}
 
 	return nil
@@ -124,7 +125,7 @@ func (s CredentialType) String() string {
 
 // ValidateCreate validate credential spec when it is created.
 func (c *CredentialSpec) ValidateCreate(kit *kit.Kit) error {
-	if err := c.CredentialType.Validate(); err != nil {
+	if err := c.CredentialType.Validate(kit); err != nil {
 		return err
 	}
 	if err := validator.ValidateName(kit, c.Name); err != nil {
@@ -136,13 +137,13 @@ func (c *CredentialSpec) ValidateCreate(kit *kit.Kit) error {
 // ValidateUpdate validate credential spec when it is updated.
 func (c *CredentialSpec) ValidateUpdate(kit *kit.Kit) error {
 	if c.CredentialType != "" {
-		return errors.New("credential type cannot be updated once created")
+		return errors.New(i18n.T(kit, "credential type cannot be updated once created"))
 	}
 	if c.EncAlgorithm != "" {
-		return errors.New("enc algorithm cannot be updated once created")
+		return errors.New(i18n.T(kit, "enc algorithm cannot be updated once created"))
 	}
 	if c.EncCredential != "" {
-		return errors.New("enc credential cannot be updated once created")
+		return errors.New(i18n.T(kit, "enc credential cannot be updated once created"))
 	}
 	if err := validator.ValidateName(kit, c.Name); err != nil {
 		return err
@@ -161,22 +162,22 @@ func (c *CredentialAttachment) IsEmpty() bool {
 }
 
 // Validate whether credential attachment is valid or not.
-func (c *CredentialAttachment) Validate() error {
+func (c *CredentialAttachment) Validate(kit *kit.Kit) error {
 	if c.BizID <= 0 {
-		return errors.New("invalid attachment biz id")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	return nil
 }
 
 // ValidateDelete validate the credential's info when delete it.
-func (c *Credential) ValidateDelete() error {
+func (c *Credential) ValidateDelete(kit *kit.Kit) error {
 	if c.ID <= 0 {
-		return errors.New("credential id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if c.Attachment.BizID <= 0 {
-		return errors.New("biz id should be set")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	return nil
@@ -186,11 +187,11 @@ func (c *Credential) ValidateDelete() error {
 func (c *Credential) ValidateUpdate(kit *kit.Kit) error {
 
 	if c.ID <= 0 {
-		return errors.New("id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if c.Spec == nil {
-		return errors.New("spec should be set")
+		return errf.ErrNoSpecF(kit)
 	}
 
 	if err := c.Spec.ValidateUpdate(kit); err != nil {
@@ -198,15 +199,15 @@ func (c *Credential) ValidateUpdate(kit *kit.Kit) error {
 	}
 
 	if c.Attachment == nil {
-		return errors.New("attachment should be set")
+		return errf.ErrNoAttachmentF(kit)
 	}
 
 	if c.Attachment.BizID <= 0 {
-		return errors.New("biz id should be set")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if c.Revision == nil {
-		return errors.New("revision not set")
+		return errf.ErrNoRevisionF(kit)
 	}
 
 	return nil

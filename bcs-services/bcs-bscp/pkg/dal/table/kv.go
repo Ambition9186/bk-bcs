@@ -21,7 +21,9 @@ import (
 
 	"gopkg.in/yaml.v3"
 
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/validator"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/tools"
 )
@@ -77,16 +79,16 @@ func (k *Kv) ResType() string {
 func (k Kv) ValidateCreate(kit *kit.Kit) error {
 
 	if k.ID > 0 {
-		return errors.New("id should not be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if k.KvState != KvStateAdd {
-		return errors.New("KvState is not set to Add")
+		return errors.New(i18n.T(kit, "KvState is not set to Add"))
 
 	}
 
 	if k.Spec == nil {
-		return errors.New("spec not set")
+		return errf.ErrNoSpecF(kit)
 	}
 
 	if err := k.Spec.ValidateCreate(kit); err != nil {
@@ -94,18 +96,18 @@ func (k Kv) ValidateCreate(kit *kit.Kit) error {
 	}
 
 	if k.Attachment == nil {
-		return errors.New("attachment not set")
+		return errf.ErrNoAttachmentF(kit)
 	}
 
-	if err := k.Attachment.Validate(); err != nil {
+	if err := k.Attachment.Validate(kit); err != nil {
 		return err
 	}
 
 	if k.Revision == nil {
-		return errors.New("revision not set")
+		return errf.ErrNoRevisionF(kit)
 	}
 
-	if err := k.Revision.ValidateCreate(); err != nil {
+	if err := k.Revision.ValidateCreate(kit); err != nil {
 		return err
 	}
 
@@ -118,7 +120,7 @@ func (k KvSpec) ValidateCreate(kit *kit.Kit) error {
 		return err
 	}
 
-	if err := k.KvType.ValidateCreateKv(); err != nil {
+	if err := k.KvType.ValidateCreateKv(kit); err != nil {
 		return err
 	}
 
@@ -126,7 +128,7 @@ func (k KvSpec) ValidateCreate(kit *kit.Kit) error {
 }
 
 // ValidateCreateKv the kvType and value match
-func (k DataType) ValidateCreateKv() error {
+func (k DataType) ValidateCreateKv(kit *kit.Kit) error {
 
 	switch k {
 	case KvStr:
@@ -137,20 +139,20 @@ func (k DataType) ValidateCreateKv() error {
 	case KvXml:
 	case KvSecret:
 	default:
-		return errors.New("invalid data-type")
+		return errors.New(i18n.T(kit, "invalid data-type"))
 	}
 	return nil
 
 }
 
 // Validate whether kv attachment is valid or not.
-func (a KvAttachment) Validate() error {
+func (a KvAttachment) Validate(kit *kit.Kit) error {
 	if a.BizID <= 0 {
-		return errors.New("invalid attachment biz id")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if a.AppID <= 0 {
-		return errors.New("invalid attachment app id")
+		return errf.ErrInvalidAppIDF(kit)
 	}
 
 	return nil
@@ -162,46 +164,46 @@ func (a KvAttachment) ValidateCreate() error {
 }
 
 // ValidateDelete validate the kv's info when delete it.
-func (k *Kv) ValidateDelete() error {
+func (k *Kv) ValidateDelete(kit *kit.Kit) error {
 	if k.ID <= 0 {
-		return errors.New("kv id should be set")
+		return i18n.TranslateError(kit, i18n.ErrInvalidID)
 	}
 
 	if k.Attachment.BizID <= 0 {
-		return errors.New("biz id should be set")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if k.Attachment.AppID <= 0 {
-		return errors.New("app id should be set")
+		return errf.ErrInvalidAppIDF(kit)
 	}
 
 	return nil
 }
 
 // ValidateUpdate validate Kv is valid or not when update it.
-func (k *Kv) ValidateUpdate() error {
+func (k *Kv) ValidateUpdate(kit *kit.Kit) error {
 
 	if k.ID <= 0 {
-		return errors.New("id should be set")
+		return i18n.TranslateError(kit, i18n.ErrInvalidID)
 	}
 
 	if k.Spec == nil {
-		return errors.New("spec should be set")
+		return errf.ErrNoSpecF(kit)
 	}
 
 	if k.Attachment == nil {
-		return errors.New("attachment should be set")
+		return errf.ErrNoAttachmentF(kit)
 	}
 
 	if k.Attachment.BizID <= 0 {
-		return errors.New("biz id should be set")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 	if k.Attachment.AppID <= 0 {
-		return errors.New("app id should be set")
+		return errf.ErrInvalidAppIDF(kit)
 	}
 
 	if k.Revision == nil {
-		return errors.New("revision not set")
+		return i18n.TranslateError(kit, i18n.ErrRevisionNotSet)
 	}
 
 	return nil
@@ -213,50 +215,50 @@ const (
 )
 
 // ValidateValue the kvType and value match
-func (k DataType) ValidateValue(value string) error {
+func (k DataType) ValidateValue(kit *kit.Kit, value string) error {
 
 	if value == "" {
-		return errors.New("kv value is null")
+		return errf.ErrInvalidArgF(kit)
 	}
 
 	if len(value) > MaxValueLength {
-		return fmt.Errorf("the length of the value must not exceed %d MB", MaxValueLength)
+		return errors.New(i18n.T(kit, "the length of the value must not exceed %d MB", MaxValueLength))
 	}
 
 	switch k {
 	case KvStr:
 		if strings.Contains(value, "\n") {
-			return errors.New("newline characters are not allowed in string-type values")
+			return errors.New(i18n.T(kit, "newline characters are not allowed in string-type values"))
 		}
 		return nil
 	case KvNumber:
 		if !tools.IsNumber(value) {
-			return fmt.Errorf("value is not a number")
+			return fmt.Errorf(i18n.T(kit, "value is not a number"))
 		}
 		return nil
 	case KvText:
 		return nil
 	case KvJson:
 		if !json.Valid([]byte(value)) {
-			return fmt.Errorf("value is not a json")
+			return fmt.Errorf(i18n.T(kit, "value is not a json"))
 		}
 		return nil
 	case KvYAML:
 		var data interface{}
 		if err := yaml.Unmarshal([]byte(value), &data); err != nil {
-			return fmt.Errorf("value is not a yaml, err: %v", err)
+			return errors.New(i18n.T(kit, "value is not a yaml, err: %v", err))
 		}
 		return nil
 	case KvXml:
 		var v interface{}
 		if err := xml.Unmarshal([]byte(value), &v); err != nil {
-			return err
+			return errors.New(i18n.T(kit, "xml unmarshal failed, err: %v", err))
 		}
 		return nil
 	case KvSecret:
 		return nil
 	default:
-		return errors.New("invalid key-value type")
+		return errors.New(i18n.T(kit, "invalid key-value type"))
 	}
 }
 
@@ -280,12 +282,12 @@ func (k KvState) String() string {
 }
 
 // Validate validate kv state is valid or not.
-func (k KvState) Validate() error {
+func (k KvState) Validate(kit *kit.Kit) error {
 	switch k {
 	case KvStateAdd, KvStateDelete, KvStateRevise, KvStateUnchange:
 		return nil
 	default:
-		return errors.New("invalid kv state")
+		return errors.New(i18n.T(kit, "invalid kv state"))
 	}
 }
 
@@ -306,7 +308,7 @@ const (
 )
 
 // Validate the secret type is valid or not.
-func (st SecretType) Validate() error {
+func (st SecretType) Validate(kit *kit.Kit) error {
 	switch st {
 	case SecretTypePassword:
 	case SecretTypeCertificate:
@@ -314,7 +316,7 @@ func (st SecretType) Validate() error {
 	case SecretTypeToken:
 	case SecretTypeCustom:
 	default:
-		return fmt.Errorf("unknown %s secret type", st)
+		return errors.New(i18n.T(kit, "unknown %s secret type", st))
 	}
 
 	return nil

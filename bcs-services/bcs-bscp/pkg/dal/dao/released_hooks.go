@@ -21,6 +21,7 @@ import (
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/dal/gen"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/dal/table"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 )
 
@@ -73,7 +74,7 @@ func (dao *releasedHookDao) Get(kit *kit.Kit, bizID, appID, releaseID uint32, tp
 	if appID == 0 {
 		return nil, errf.New(errf.InvalidParameter, "appID is 0")
 	}
-	if err := tp.Validate(); err != nil {
+	if err := tp.Validate(kit); err != nil {
 		return nil, err
 	}
 	m := dao.genQ.ReleasedHook
@@ -131,7 +132,7 @@ func (dao *releasedHookDao) UpsertWithTx(kit *kit.Kit, tx *gen.QueryTx, rh *tabl
 		return errors.New("released hook is nil")
 	}
 
-	if err := rh.ValidateCreate(); err != nil {
+	if err := rh.ValidateCreate(kit); err != nil {
 		return err
 	}
 
@@ -186,10 +187,10 @@ func (dao *releasedHookDao) UpdateHookRevisionByReleaseIDWithTx(kit *kit.Kit, tx
 func (dao *releasedHookDao) CreateWithTx(kit *kit.Kit, tx *gen.QueryTx, rh *table.ReleasedHook) (
 	uint32, error) {
 	if rh == nil {
-		return 0, errors.New("released hook is nil")
+		return 0, errors.New(i18n.T(kit, "released hook is nil"))
 	}
 
-	if err := rh.ValidateCreate(); err != nil {
+	if err := rh.ValidateCreate(kit); err != nil {
 		return 0, err
 	}
 
@@ -198,13 +199,13 @@ func (dao *releasedHookDao) CreateWithTx(kit *kit.Kit, tx *gen.QueryTx, rh *tabl
 	// generate an released hook id and update to released hook.
 	id, err := dao.idGen.One(kit, table.Name(rh.TableName()))
 	if err != nil {
-		return 0, err
+		return 0, errf.Errorf(errf.DBOpFailed, i18n.T(kit, "generate an released hook id failed, err: %v", err))
 	}
 
 	rh.ID = id
 
 	if err := tx.ReleasedHook.WithContext(kit.Ctx).Create(rh); err != nil {
-		return 0, err
+		return 0, errf.Errorf(errf.DBOpFailed, i18n.T(kit, "create released pre-hook failed, err: %v", err))
 	}
 
 	return id, nil
@@ -255,7 +256,7 @@ func (dao *releasedHookDao) DeleteByUniqueKeyWithTx(kit *kit.Kit, tx *gen.QueryT
 	if rh.BizID == 0 {
 		return errf.New(errf.InvalidParameter, "bizID is 0")
 	}
-	if err := rh.HookType.Validate(); err != nil {
+	if err := rh.HookType.Validate(kit); err != nil {
 		return err
 	}
 	m := tx.ReleasedHook

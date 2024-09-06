@@ -13,8 +13,7 @@
 package table
 
 import (
-	"errors"
-
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 )
 
@@ -78,11 +77,11 @@ func (rs RkvList) ResType() string {
 // ValidateCreate validate ReleasedKv is valid or not when create ir.
 func (r *ReleasedKv) ValidateCreate(kit *kit.Kit) error {
 	if r.ID > 0 {
-		return errors.New("id should not be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if r.Spec == nil {
-		return errors.New("spec not set")
+		return errf.ErrNoSpecF(kit)
 	}
 
 	if err := r.Spec.ValidateCreate(kit); err != nil {
@@ -90,15 +89,15 @@ func (r *ReleasedKv) ValidateCreate(kit *kit.Kit) error {
 	}
 
 	if r.Attachment == nil {
-		return errors.New("attachment not set")
+		return errf.ErrNoAttachmentF(kit)
 	}
 
-	if err := r.Attachment.Validate(); err != nil {
+	if err := r.Attachment.Validate(kit); err != nil {
 		return err
 	}
 
 	if r.Revision == nil {
-		return errors.New("revision not set")
+		return errf.ErrNoRevisionF(kit)
 	}
 
 	return nil

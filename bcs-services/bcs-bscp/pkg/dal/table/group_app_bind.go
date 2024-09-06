@@ -13,9 +13,9 @@
 package table
 
 import (
-	"errors"
-
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/enumor"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 )
 
 // GroupAppBindColumns defines group app's columns
@@ -46,37 +46,37 @@ func (c GroupAppBind) TableName() string {
 }
 
 // ValidateCreate validate the group app's specific when create it.
-func (c GroupAppBind) ValidateCreate() error {
+func (c GroupAppBind) ValidateCreate(kit *kit.Kit) error {
 	if c.ID != 0 {
-		return errors.New("group app id can not be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if c.GroupID <= 0 {
-		return errors.New("group id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 	if c.AppID <= 0 {
-		return errors.New("app id should be set")
+		return errf.ErrInvalidAppIDF(kit)
 	}
 	if c.BizID <= 0 {
-		return errors.New("biz id should be set")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	return nil
 }
 
 // ValidateUpdate validate the group app's specific when update it.
-func (c GroupAppBind) ValidateUpdate() error {
+func (c GroupAppBind) ValidateUpdate(kit *kit.Kit) error {
 	if c.ID <= 0 {
-		return errors.New("group app id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	return nil
 }
 
 // ValidateDelete validate the group app's info when delete it.
-func (c GroupAppBind) ValidateDelete() error {
+func (c GroupAppBind) ValidateDelete(kit *kit.Kit) error {
 	if c.ID <= 0 {
-		return errors.New("group app id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	return nil

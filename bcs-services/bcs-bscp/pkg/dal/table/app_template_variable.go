@@ -17,6 +17,7 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 )
 
@@ -57,18 +58,18 @@ func (t *AppTemplateVariable) ValidateUpsert(kit *kit.Kit) error {
 	}
 
 	if t.Attachment == nil {
-		return errors.New("attachment should be set")
+		return errf.ErrNoAttachmentF(kit)
 	}
 
-	if err := t.Attachment.Validate(); err != nil {
+	if err := t.Attachment.Validate(kit); err != nil {
 		return err
 	}
 
 	if t.Revision == nil {
-		return errors.New("revision not set")
+		return errf.ErrNoRevisionF(kit)
 	}
 
-	if err := t.Revision.ValidateUpdate(); err != nil {
+	if err := t.Revision.ValidateUpdate(kit); err != nil {
 		return err
 	}
 
@@ -141,13 +142,13 @@ type AppTemplateVariableAttachment struct {
 }
 
 // Validate whether AppTemplateVariable attachment is valid or not.
-func (t *AppTemplateVariableAttachment) Validate() error {
+func (t *AppTemplateVariableAttachment) Validate(kit *kit.Kit) error {
 	if t.BizID <= 0 {
-		return errors.New("invalid attachment biz id")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if t.AppID <= 0 {
-		return errors.New("invalid attachment app id")
+		return errf.ErrInvalidAppIDF(kit)
 	}
 
 	return nil

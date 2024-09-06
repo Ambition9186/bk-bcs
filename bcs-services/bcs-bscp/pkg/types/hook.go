@@ -13,9 +13,10 @@
 package types
 
 import (
-	"errors"
-
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/dal/table"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 )
 
 // ListHooksWithReferOption defines options to list group.
@@ -30,16 +31,16 @@ type ListHooksWithReferOption struct {
 }
 
 // Validate the list group options
-func (opt *ListHooksWithReferOption) Validate(po *PageOption) error {
+func (opt *ListHooksWithReferOption) Validate(kit *kit.Kit, po *PageOption) error {
 	if opt.BizID <= 0 {
-		return errors.New("invalid biz id, should >= 1")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if opt.Page == nil {
-		return errors.New("page is null")
+		return i18n.TranslateError(kit, i18n.ErrInvalidPage)
 	}
 
-	if err := opt.Page.Validate(po); err != nil {
+	if err := opt.Page.Validate(kit, po); err != nil {
 		return err
 	}
 
@@ -63,16 +64,16 @@ type ListHookReferencesOption struct {
 }
 
 // Validate the list hook references options
-func (opt *ListHookReferencesOption) Validate(po *PageOption) error {
+func (opt *ListHookReferencesOption) Validate(kit *kit.Kit, po *PageOption) error {
 	if opt.BizID <= 0 {
-		return errors.New("invalid biz id, should >= 1")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if opt.Page == nil {
-		return errors.New("page is null")
+		return i18n.TranslateError(kit, i18n.ErrInvalidPage)
 	}
 
-	if err := opt.Page.Validate(po); err != nil {
+	if err := opt.Page.Validate(kit, po); err != nil {
 		return err
 	}
 

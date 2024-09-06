@@ -14,13 +14,14 @@ package service
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"reflect"
 
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/dal/table"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/logs"
 	pbbase "github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/protocol/core/base"
@@ -38,16 +39,16 @@ func (s *Service) CreateGroup(ctx context.Context, req *pbds.CreateGroupReq) (*p
 	spec, err := req.Spec.GroupSpec()
 	if err != nil {
 		logs.Errorf("get group spec from pb failed, err: %v, rid: %s", err, kt.Rid)
-		return nil, err
+		return nil, errors.New(i18n.T(kt, "get group spec from pb failed, err: %v", err))
 	}
 
 	if !req.Spec.Public && len(req.Spec.BindApps) == 0 {
 		logs.Errorf("group must bind apps when public is set to false, rid: %s", kt.Rid)
-		return nil, errf.New(errf.InvalidParameter, "group must bind apps when public is set to false")
+		return nil, errf.New(errf.InvalidParameter, i18n.T(kt, "group must bind apps when public is set to false"))
 	}
 	if req.Spec.Public && len(req.Spec.BindApps) > 0 {
 		logs.Errorf("group must not bind apps when public is set to true, rid: %s", kt.Rid)
-		return nil, errf.New(errf.InvalidParameter, "group must not bind apps when public is set to true")
+		return nil, errf.New(errf.InvalidParameter, i18n.T(kt, "group must not bind apps when public is set to true"))
 	}
 
 	group := &table.Group{
@@ -86,7 +87,7 @@ func (s *Service) CreateGroup(ctx context.Context, req *pbds.CreateGroupReq) (*p
 	}
 	if e := tx.Commit(); e != nil {
 		logs.Errorf("commit transaction failed, err: %v, rid: %s", e, kt.Rid)
-		return nil, e
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kt, "create group failed, err: %v", e))
 	}
 
 	resp := &pbds.CreateResp{Id: id}
@@ -112,7 +113,7 @@ func (s *Service) ListAllGroups(ctx context.Context, req *pbds.ListAllGroupsReq)
 	groups, err := pbgroup.PbGroups(details)
 	if err != nil {
 		logs.Errorf("get pb group failed, err: %v, rid: %s", err, kt.Rid)
-		return nil, err
+		return nil, errors.New(i18n.T(kt, "get pb group failed, err: %v", err))
 	}
 
 	groupIDs := make([]uint32, len(groups))
@@ -188,7 +189,7 @@ func (s *Service) ListAppGroups(ctx context.Context, req *pbds.ListAppGroupsReq)
 			newSelector, err = group.Spec.Selector.MarshalPB()
 			if err != nil {
 				logs.Errorf("marshal selector failed, err: %v, rid: %s", err, kt.Rid)
-				return nil, err
+				return nil, errors.New(i18n.T(kt, "marshal selector failed, err: %v", err))
 			}
 		}
 		data := &pbds.ListAppGroupsResp_ListAppGroupsData{
@@ -208,7 +209,7 @@ func (s *Service) ListAppGroups(ctx context.Context, req *pbds.ListAppGroupsReq)
 					oldSelector, err = gcr.Selector.MarshalPB()
 					if err != nil {
 						logs.Errorf("marshal selector failed, err: %v, rid: %s", err, kt.Rid)
-						return nil, err
+						return nil, errors.New(i18n.T(kt, "marshal selector failed, err: %v", err))
 					}
 					data.NewSelector = oldSelector
 				}
@@ -232,10 +233,15 @@ func (s *Service) GetGroupByName(ctx context.Context, req *pbds.GetGroupByNameRe
 	group, err := s.dao.Group().GetByName(grpcKit, req.GetBizId(), req.GetGroupName())
 	if err != nil {
 		logs.Errorf("get group by name failed, err: %v, rid: %s", err, grpcKit.Rid)
-		return nil, fmt.Errorf("query group by name %s failed", req.GetGroupName())
+		return nil, err
 	}
 
-	return pbgroup.PbGroup(group)
+	pbGroup, err := pbgroup.PbGroup(group)
+	if err != nil {
+		return nil, errors.New(i18n.T(grpcKit, "convert table Group to pb group failed"))
+	}
+
+	return pbGroup, nil
 }
 
 // UpdateGroup update group.
@@ -246,16 +252,16 @@ func (s *Service) UpdateGroup(ctx context.Context, req *pbds.UpdateGroupReq) (*p
 	spec, err := req.Spec.GroupSpec()
 	if err != nil {
 		logs.Errorf("get group spec from pb failed, err: %v, rid: %s", err, kt.Rid)
-		return nil, err
+		return nil, errors.New(i18n.T(kt, "get group spec from pb failed, err: %v", err))
 	}
 
 	if !req.Spec.Public && len(req.Spec.BindApps) == 0 {
 		logs.Errorf("group must bind apps when public is set to false, rid: %s", kt.Rid)
-		return nil, errf.New(errf.InvalidParameter, "group must bind apps when public is set to false")
+		return nil, errf.New(errf.InvalidParameter, i18n.T(kt, "group must bind apps when public is set to false"))
 	}
 	if req.Spec.Public && len(req.Spec.BindApps) > 0 {
 		logs.Errorf("group must not bind apps when public is set to true, rid: %s", kt.Rid)
-		return nil, errf.New(errf.InvalidParameter, "group must not bind apps when public is set to true")
+		return nil, errf.New(errf.InvalidParameter, i18n.T(kt, "group must not bind apps when public is set to true"))
 	}
 
 	n := &table.Group{
@@ -269,7 +275,7 @@ func (s *Service) UpdateGroup(ctx context.Context, req *pbds.UpdateGroupReq) (*p
 
 	old, err := s.dao.Group().Get(kt, req.Id, req.Attachment.BizId)
 	if err != nil {
-		return nil, err
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kt, "get group failed, err: %v", err))
 	}
 
 	if !n.Spec.Public {
@@ -287,7 +293,7 @@ func (s *Service) UpdateGroup(ctx context.Context, req *pbds.UpdateGroupReq) (*p
 			for _, p := range published {
 				if app.ID == p.AppID {
 					return nil, errf.New(errf.ErrGroupAlreadyPublished,
-						fmt.Sprintf("group has already published in app [%s]", app.Spec.Name))
+						i18n.T(kt, "group has already published in app [%s]", app.Spec.Name))
 				}
 			}
 		}
@@ -299,7 +305,7 @@ func (s *Service) UpdateGroup(ctx context.Context, req *pbds.UpdateGroupReq) (*p
 		if rErr := tx.Rollback(); rErr != nil {
 			logs.Errorf("transaction rollback failed, err: %v, rid: %s", rErr, kt.Rid)
 		}
-		return nil, e
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kt, "update group failed, err: %v", e))
 	}
 
 	if e := s.dao.GroupAppBind().BatchDeleteByGroupIDWithTx(kt, tx, req.Id, req.Attachment.BizId); e != nil {
@@ -307,7 +313,7 @@ func (s *Service) UpdateGroup(ctx context.Context, req *pbds.UpdateGroupReq) (*p
 		if rErr := tx.Rollback(); rErr != nil {
 			logs.Errorf("transaction rollback failed, err: %v, rid: %s", rErr, kt.Rid)
 		}
-		return nil, e
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kt, "delete group app failed, err: %v", e))
 	}
 
 	if !n.Spec.Public {
@@ -324,7 +330,7 @@ func (s *Service) UpdateGroup(ctx context.Context, req *pbds.UpdateGroupReq) (*p
 			if rErr := tx.Rollback(); rErr != nil {
 				logs.Errorf("transaction rollback failed, err: %v, rid: %s", rErr, kt.Rid)
 			}
-			return nil, e
+			return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kt, "create group app failed, err: %v", e))
 		}
 	}
 
@@ -344,13 +350,13 @@ func (s *Service) UpdateGroup(ctx context.Context, req *pbds.UpdateGroupReq) (*p
 			if rErr := tx.Rollback(); rErr != nil {
 				logs.Errorf("transaction rollback failed, err: %v, rid: %s", rErr, kt.Rid)
 			}
-			return nil, e
+			return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kt, "update group current release failed, err: %v", e))
 		}
 	}
 
 	if e := tx.Commit(); e != nil {
 		logs.Errorf("commit transaction failed, err: %v, rid: %s", e, kt.Rid)
-		return nil, e
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kt, "update group failed, err: %v", e))
 	}
 
 	return &pbbase.EmptyResp{}, nil
@@ -368,7 +374,8 @@ func (s *Service) DeleteGroup(ctx context.Context, req *pbds.DeleteGroupReq) (*p
 	// check if the group was already released in any app.
 	published, err := s.dao.ReleasedGroup().ListAllByGroupID(kt, req.Id, req.Attachment.BizId)
 	if err != nil {
-		return nil, err
+		return nil, errf.Errorf(errf.DBOpFailed,
+			i18n.T(kt, "check if the group was already released in any app failed, err: %v", err))
 	}
 	publishedApps := make([]uint32, len(published))
 	for idx, app := range published {
@@ -376,7 +383,7 @@ func (s *Service) DeleteGroup(ctx context.Context, req *pbds.DeleteGroupReq) (*p
 	}
 	if len(published) > 0 {
 		return nil, errf.New(errf.ErrGroupAlreadyPublished,
-			fmt.Sprintf("group has already published in apps [%s]", tools.JoinUint32(publishedApps, ",")))
+			i18n.T(kt, "group has already published in apps [%s]", tools.JoinUint32(publishedApps, ",")))
 	}
 	tx := s.dao.GenQuery().Begin()
 	if e := s.dao.Group().DeleteWithTx(kt, tx, group); e != nil {
@@ -384,7 +391,7 @@ func (s *Service) DeleteGroup(ctx context.Context, req *pbds.DeleteGroupReq) (*p
 		if rErr := tx.Rollback(); rErr != nil {
 			logs.Errorf("transaction rollback failed, err: %v, rid: %s", rErr, kt.Rid)
 		}
-		return nil, e
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kt, "delete group failed, err: %v", e))
 	}
 
 	if e := s.dao.GroupAppBind().BatchDeleteByGroupIDWithTx(kt, tx, req.Id, req.Attachment.BizId); e != nil {
@@ -392,12 +399,12 @@ func (s *Service) DeleteGroup(ctx context.Context, req *pbds.DeleteGroupReq) (*p
 		if rErr := tx.Rollback(); rErr != nil {
 			logs.Errorf("transaction rollback failed, err: %v, rid: %s", rErr, kt.Rid)
 		}
-		return nil, e
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kt, "delete group app failed, err: %v", e))
 	}
 
 	if e := tx.Commit(); e != nil {
 		logs.Errorf("commit transaction failed, err: %v, rid: %s", e, kt.Rid)
-		return nil, e
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kt, "delete group failed, err: %v", e))
 	}
 
 	return new(pbbase.EmptyResp), nil
@@ -417,7 +424,7 @@ func (s *Service) ListGroupReleasedApps(ctx context.Context, req *pbds.ListGroup
 	})
 	if err != nil {
 		logs.Errorf("list groups published apps failed, err: %v, rid: %s", err, kt.Rid)
-		return nil, err
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kt, "list groups published apps failed, err: %v", err))
 	}
 
 	data := make([]*pbds.ListGroupReleasedAppsResp_ListGroupReleasedAppsData, len(resp.Details))
@@ -444,7 +451,7 @@ func (s *Service) queryReducedApps(kt *kit.Kit, old *table.Group, new *pbds.Upda
 	}
 	apps, err := s.dao.App().ListAppsByGroupID(kt, old.ID, old.Attachment.BizID)
 	if err != nil {
-		return reduced, err
+		return reduced, errf.Errorf(errf.DBOpFailed, i18n.T(kt, "get group failed, err: %v", err))
 	}
 	for _, app := range apps {
 		exists := false

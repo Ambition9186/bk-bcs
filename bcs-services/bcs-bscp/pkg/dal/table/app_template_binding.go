@@ -16,9 +16,11 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
-	"fmt"
 
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/dal/types"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 )
 
 // AppTemplateBinding 未命名版本服务的模版绑定
@@ -50,32 +52,32 @@ func (t *AppTemplateBinding) ResType() string {
 }
 
 // ValidateCreate validate AppTemplateBinding is valid or not when create it.
-func (t *AppTemplateBinding) ValidateCreate() error {
+func (t *AppTemplateBinding) ValidateCreate(kit *kit.Kit) error {
 	if t.ID > 0 {
-		return errors.New("id should not be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if t.Spec == nil {
-		return errors.New("spec not set")
+		return errf.ErrNoSpecF(kit)
 	}
 
-	if err := t.Spec.ValidateCreate(); err != nil {
+	if err := t.Spec.ValidateCreate(kit); err != nil {
 		return err
 	}
 
 	if t.Attachment == nil {
-		return errors.New("attachment not set")
+		return errf.ErrNoAttachmentF(kit)
 	}
 
-	if err := t.Attachment.Validate(); err != nil {
+	if err := t.Attachment.Validate(kit); err != nil {
 		return err
 	}
 
 	if t.Revision == nil {
-		return errors.New("revision not set")
+		return errf.ErrNoRevisionF(kit)
 	}
 
-	if err := t.Revision.ValidateCreate(); err != nil {
+	if err := t.Revision.ValidateCreate(kit); err != nil {
 		return err
 	}
 
@@ -83,31 +85,31 @@ func (t *AppTemplateBinding) ValidateCreate() error {
 }
 
 // ValidateUpdate validate AppTemplateBinding is valid or not when update it.
-func (t *AppTemplateBinding) ValidateUpdate() error {
+func (t *AppTemplateBinding) ValidateUpdate(kit *kit.Kit) error {
 
 	if t.ID <= 0 {
-		return errors.New("id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if t.Spec != nil {
-		if err := t.Spec.ValidateUpdate(); err != nil {
+		if err := t.Spec.ValidateUpdate(kit); err != nil {
 			return err
 		}
 	}
 
 	if t.Attachment == nil {
-		return errors.New("attachment should be set")
+		return errf.ErrNoAttachmentF(kit)
 	}
 
-	if err := t.Attachment.Validate(); err != nil {
+	if err := t.Attachment.Validate(kit); err != nil {
 		return err
 	}
 
 	if t.Revision == nil {
-		return errors.New("revision not set")
+		return errf.ErrNoRevisionF(kit)
 	}
 
-	if err := t.Revision.ValidateUpdate(); err != nil {
+	if err := t.Revision.ValidateUpdate(kit); err != nil {
 		return err
 	}
 
@@ -115,16 +117,16 @@ func (t *AppTemplateBinding) ValidateUpdate() error {
 }
 
 // ValidateDelete validate the AppTemplateBinding's info when delete it.
-func (t *AppTemplateBinding) ValidateDelete() error {
+func (t *AppTemplateBinding) ValidateDelete(kit *kit.Kit) error {
 	if t.ID <= 0 {
-		return errors.New("AppTemplateBinding id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if t.Attachment == nil {
-		return errors.New("attachment should be set")
+		return errf.ErrNoAttachmentF(kit)
 	}
 
-	if err := t.Attachment.Validate(); err != nil {
+	if err := t.Attachment.Validate(kit); err != nil {
 		return err
 	}
 
@@ -201,31 +203,31 @@ func (u *TemplateBindings) Scan(value interface{}) error {
 }
 
 // ValidateCreate validate AppTemplateBinding spec when it is created.
-func (t *AppTemplateBindingSpec) ValidateCreate() error {
-	return validateBindingsCreate(t.Bindings)
+func (t *AppTemplateBindingSpec) ValidateCreate(kit *kit.Kit) error {
+	return validateBindingsCreate(kit, t.Bindings)
 }
 
 // ValidateUpdate validate AppTemplateBinding spec when it is updated.
-func (t *AppTemplateBindingSpec) ValidateUpdate() error {
-	return validateBindingsUpdate(t.Bindings)
+func (t *AppTemplateBindingSpec) ValidateUpdate(kit *kit.Kit) error {
+	return validateBindingsUpdate(kit, t.Bindings)
 }
 
-func validateBindingsCreate(bindings TemplateBindings) error {
+func validateBindingsCreate(kit *kit.Kit, bindings TemplateBindings) error {
 	if len(bindings) == 0 {
-		return errors.New("bindings can't be empty")
+		return errors.New(i18n.T(kit, "bindings can't be empty"))
 	}
 	for _, b := range bindings {
 		if b.TemplateSetID <= 0 {
-			return fmt.Errorf("invalid template set id of bindings member: %d", b.TemplateSetID)
+			return errors.New(i18n.T(kit, "invalid template set id of bindings member: %d", b.TemplateSetID))
 		}
 	}
 	return nil
 }
 
-func validateBindingsUpdate(bindings TemplateBindings) error {
+func validateBindingsUpdate(kit *kit.Kit, bindings TemplateBindings) error {
 	for _, b := range bindings {
 		if b.TemplateSetID <= 0 {
-			return fmt.Errorf("invalid template set id of bindings member: %d", b.TemplateSetID)
+			return errors.New(i18n.T(kit, "invalid template set id of bindings member: %d", b.TemplateSetID))
 		}
 	}
 	return nil
@@ -238,13 +240,13 @@ type AppTemplateBindingAttachment struct {
 }
 
 // Validate whether AppTemplateBinding attachment is valid or not.
-func (t *AppTemplateBindingAttachment) Validate() error {
+func (t *AppTemplateBindingAttachment) Validate(kit *kit.Kit) error {
 	if t.BizID <= 0 {
-		return errors.New("invalid attachment biz id")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if t.AppID <= 0 {
-		return errors.New("invalid attachment app id")
+		return errf.ErrInvalidAppIDF(kit)
 	}
 
 	return nil

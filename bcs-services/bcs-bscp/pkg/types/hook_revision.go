@@ -13,9 +13,10 @@
 package types
 
 import (
-	"errors"
-
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/dal/table"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 )
 
 // ListHookRevisionsOption defines the response details of requested ListHookRevisionsOption.
@@ -34,25 +35,25 @@ type ListHookRevisionDetails struct {
 }
 
 // Validate the list revisions options
-func (opt *ListHookRevisionsOption) Validate(po *PageOption) error {
+func (opt *ListHookRevisionsOption) Validate(kit *kit.Kit, po *PageOption) error {
 	if opt.BizID <= 0 {
-		return errors.New("invalid biz id, should >= 1")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if opt.HookID <= 0 {
-		return errors.New("invalid hook id id, should >= 1")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if opt.Page == nil {
-		return errors.New("page is null")
+		return i18n.TranslateError(kit, i18n.ErrInvalidPage)
 	}
 
-	if err := opt.Page.Validate(po); err != nil {
+	if err := opt.Page.Validate(kit, po); err != nil {
 		return err
 	}
 
 	if opt.State.String() != "" {
-		if err := opt.State.Validate(); err != nil {
+		if err := opt.State.Validate(kit); err != nil {
 			return err
 		}
 	}
@@ -87,16 +88,16 @@ type GetByPubStateOption struct {
 }
 
 // Validate the get ByPubState option
-func (opt *GetByPubStateOption) Validate() error {
+func (opt *GetByPubStateOption) Validate(kit *kit.Kit) error {
 	if opt.BizID <= 0 {
-		return errors.New("invalid biz id, should >= 1")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if opt.HookID <= 0 {
-		return errors.New("invalid hook id id, should >= 1")
+		return errf.ErrInvalidIDF(kit)
 	}
 
-	if err := opt.State.Validate(); err != nil {
+	if err := opt.State.Validate(kit); err != nil {
 		return err
 	}
 
@@ -124,20 +125,20 @@ type ListHookRevisionReferences struct {
 }
 
 // Validate the list revision options
-func (opt *ListHookRevisionReferencesOption) Validate(po *PageOption) error {
+func (opt *ListHookRevisionReferencesOption) Validate(kit *kit.Kit, po *PageOption) error {
 	if opt.BizID <= 0 {
-		return errors.New("invalid biz id, should >= 1")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if opt.HookID <= 0 {
-		return errors.New("invalid hook id id, should >= 1")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if opt.Page == nil {
-		return errors.New("page is null")
+		return i18n.TranslateError(kit, i18n.ErrInvalidPage)
 	}
 
-	if err := opt.Page.Validate(po); err != nil {
+	if err := opt.Page.Validate(kit, po); err != nil {
 		return err
 	}
 

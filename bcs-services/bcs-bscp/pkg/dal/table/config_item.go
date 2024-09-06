@@ -68,11 +68,11 @@ func (c ConfigItem) TableName() Name {
 // ValidateCreate validate the config item's specific when create it.
 func (c ConfigItem) ValidateCreate(kit *kit.Kit) error {
 	if c.ID != 0 {
-		return errors.New("config item id can not be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if c.Spec == nil {
-		return errors.New("spec should be set")
+		return errf.ErrNoSpecF(kit)
 	}
 
 	if err := c.Spec.ValidateCreate(kit); err != nil {
@@ -80,18 +80,18 @@ func (c ConfigItem) ValidateCreate(kit *kit.Kit) error {
 	}
 
 	if c.Attachment == nil {
-		return errors.New("attachment should be set")
+		return errf.ErrNoAttachmentF(kit)
 	}
 
-	if err := c.Attachment.Validate(); err != nil {
+	if err := c.Attachment.Validate(kit); err != nil {
 		return err
 	}
 
 	if c.Revision == nil {
-		return errors.New("revision should be set")
+		return errf.ErrNoRevisionF(kit)
 	}
 
-	if err := c.Revision.ValidateCreate(); err != nil {
+	if err := c.Revision.ValidateCreate(kit); err != nil {
 		return err
 	}
 
@@ -101,7 +101,7 @@ func (c ConfigItem) ValidateCreate(kit *kit.Kit) error {
 // ValidateUpdate validate the config item's specific when update it.
 func (c ConfigItem) ValidateUpdate(kit *kit.Kit) error {
 	if c.ID <= 0 {
-		return errors.New("config item id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if c.Spec != nil {
@@ -111,15 +111,15 @@ func (c ConfigItem) ValidateUpdate(kit *kit.Kit) error {
 	}
 
 	if c.Attachment == nil {
-		return errors.New("attachment should be set")
+		return errf.ErrNoAttachmentF(kit)
 	}
 
-	if err := c.Attachment.Validate(); err != nil {
+	if err := c.Attachment.Validate(kit); err != nil {
 		return err
 	}
 
 	if c.Revision != nil {
-		if err := c.Revision.ValidateUpdate(); err != nil {
+		if err := c.Revision.ValidateUpdate(kit); err != nil {
 			return err
 		}
 	}
@@ -147,11 +147,11 @@ func (c ConfigItem) ValidateDelete() error {
 // ValidateRecover validate the config item's specific when recover it.
 func (c ConfigItem) ValidateRecover(kit *kit.Kit) error {
 	if c.ID == 0 {
-		return errors.New("config item id can not be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if c.Spec == nil {
-		return errors.New("spec should be set")
+		return errf.ErrNoSpecF(kit)
 	}
 
 	if err := c.Spec.ValidateCreate(kit); err != nil {
@@ -159,18 +159,18 @@ func (c ConfigItem) ValidateRecover(kit *kit.Kit) error {
 	}
 
 	if c.Attachment == nil {
-		return errors.New("attachment should be set")
+		return errf.ErrNoAttachmentF(kit)
 	}
 
-	if err := c.Attachment.Validate(); err != nil {
+	if err := c.Attachment.Validate(kit); err != nil {
 		return err
 	}
 
 	if c.Revision == nil {
-		return errors.New("revision should be set")
+		return errf.ErrNoRevisionF(kit)
 	}
 
-	if err := c.Revision.ValidateCreate(); err != nil {
+	if err := c.Revision.ValidateCreate(kit); err != nil {
 		return err
 	}
 
@@ -353,13 +353,13 @@ type ConfigItemAttachment struct {
 }
 
 // Validate config item attachment.
-func (c ConfigItemAttachment) Validate() error {
+func (c ConfigItemAttachment) Validate(kit *kit.Kit) error {
 	if c.BizID <= 0 {
-		return errors.New("invalid biz id")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if c.AppID <= 0 {
-		return errors.New("invalid app id")
+		return errf.ErrInvalidAppIDF(kit)
 	}
 
 	return nil

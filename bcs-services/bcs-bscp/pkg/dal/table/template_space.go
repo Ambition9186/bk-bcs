@@ -13,8 +13,7 @@
 package table
 
 import (
-	"errors"
-
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/validator"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 )
@@ -50,11 +49,11 @@ func (t *TemplateSpace) ResType() string {
 // ValidateCreate validate template space is valid or not when create it.
 func (t *TemplateSpace) ValidateCreate(kit *kit.Kit) error {
 	if t.ID > 0 {
-		return errors.New("id should not be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if t.Spec == nil {
-		return errors.New("spec not set")
+		return errf.ErrNoSpecF(kit)
 	}
 
 	if err := t.Spec.ValidateCreate(kit); err != nil {
@@ -62,18 +61,18 @@ func (t *TemplateSpace) ValidateCreate(kit *kit.Kit) error {
 	}
 
 	if t.Attachment == nil {
-		return errors.New("attachment not set")
+		return errf.ErrNoAttachmentF(kit)
 	}
 
-	if err := t.Attachment.Validate(); err != nil {
+	if err := t.Attachment.Validate(kit); err != nil {
 		return err
 	}
 
 	if t.Revision == nil {
-		return errors.New("revision not set")
+		return errf.ErrNoRevisionF(kit)
 	}
 
-	if err := t.Revision.ValidateCreate(); err != nil {
+	if err := t.Revision.ValidateCreate(kit); err != nil {
 		return err
 	}
 
@@ -84,7 +83,7 @@ func (t *TemplateSpace) ValidateCreate(kit *kit.Kit) error {
 func (t *TemplateSpace) ValidateUpdate(kit *kit.Kit) error {
 
 	if t.ID <= 0 {
-		return errors.New("id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if t.Spec != nil {
@@ -94,18 +93,18 @@ func (t *TemplateSpace) ValidateUpdate(kit *kit.Kit) error {
 	}
 
 	if t.Attachment == nil {
-		return errors.New("attachment should be set")
+		return errf.ErrNoAttachmentF(kit)
 	}
 
-	if err := t.Attachment.Validate(); err != nil {
+	if err := t.Attachment.Validate(kit); err != nil {
 		return err
 	}
 
 	if t.Revision == nil {
-		return errors.New("revision not set")
+		return errf.ErrNoRevisionF(kit)
 	}
 
-	if err := t.Revision.ValidateUpdate(); err != nil {
+	if err := t.Revision.ValidateUpdate(kit); err != nil {
 		return err
 	}
 
@@ -113,16 +112,16 @@ func (t *TemplateSpace) ValidateUpdate(kit *kit.Kit) error {
 }
 
 // ValidateDelete validate the template space's info when delete it.
-func (t *TemplateSpace) ValidateDelete() error {
+func (t *TemplateSpace) ValidateDelete(kit *kit.Kit) error {
 	if t.ID <= 0 {
-		return errors.New("template space id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if t.Attachment == nil {
-		return errors.New("attachment should be set")
+		return errf.ErrNoAttachmentF(kit)
 	}
 
-	if err := t.Attachment.Validate(); err != nil {
+	if err := t.Attachment.Validate(kit); err != nil {
 		return err
 	}
 
@@ -159,9 +158,9 @@ type TemplateSpaceAttachment struct {
 }
 
 // Validate whether template space attachment is valid or not.
-func (t *TemplateSpaceAttachment) Validate() error {
+func (t *TemplateSpaceAttachment) Validate(kit *kit.Kit) error {
 	if t.BizID <= 0 {
-		return errors.New("invalid attachment biz id")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	return nil

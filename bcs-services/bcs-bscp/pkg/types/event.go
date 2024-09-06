@@ -13,9 +13,9 @@
 package types
 
 import (
-	"errors"
-
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/dal/table"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 )
 
 // Event defines a event's details info.
@@ -26,28 +26,28 @@ type Event struct {
 }
 
 // Validate an event is valid or not.
-func (e Event) Validate() error {
+func (e Event) Validate(kit *kit.Kit) error {
 	if e.Spec == nil {
-		return errors.New("invalid event spec, is nil")
+		return errf.ErrNoSpecF(kit)
 	}
 
-	if err := e.Spec.Validate(); err != nil {
+	if err := e.Spec.Validate(kit); err != nil {
 		return err
 	}
 
 	if e.Attachment == nil {
-		return errors.New("invalid event attachment, is nil")
+		return errf.ErrNoAttachmentF(kit)
 	}
 
-	if err := e.Attachment.Validate(); err != nil {
+	if err := e.Attachment.Validate(kit); err != nil {
 		return err
 	}
 
 	if e.Revision == nil {
-		return errors.New("invalid event revision, is nil")
+		return errf.ErrNoRevisionF(kit)
 	}
 
-	if err := e.Revision.Validate(); err != nil {
+	if err := e.Revision.Validate(kit); err != nil {
 		return err
 	}
 

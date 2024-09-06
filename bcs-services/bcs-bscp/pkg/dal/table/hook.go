@@ -14,11 +14,12 @@ package table
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/enumor"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/validator"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/dal/types"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 )
 
@@ -56,11 +57,11 @@ func (h *Hook) ResType() string {
 func (h Hook) ValidateCreate(kit *kit.Kit) error {
 
 	if h.ID > 0 {
-		return errors.New("id should not be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if h.Spec == nil {
-		return errors.New("spec not set")
+		return errf.ErrNoSpecF(kit)
 	}
 
 	if err := h.Spec.ValidateCreate(kit); err != nil {
@@ -68,18 +69,18 @@ func (h Hook) ValidateCreate(kit *kit.Kit) error {
 	}
 
 	if h.Attachment == nil {
-		return errors.New("attachment not set")
+		return errf.ErrNoAttachmentF(kit)
 	}
 
-	if err := h.Attachment.Validate(); err != nil {
+	if err := h.Attachment.Validate(kit); err != nil {
 		return err
 	}
 
 	if h.Revision == nil {
-		return errors.New("revision not set")
+		return errf.ErrNoRevisionF(kit)
 	}
 
-	if err := h.Revision.ValidateCreate(); err != nil {
+	if err := h.Revision.ValidateCreate(kit); err != nil {
 		return err
 	}
 
@@ -87,13 +88,13 @@ func (h Hook) ValidateCreate(kit *kit.Kit) error {
 }
 
 // ValidateDelete validate the hook's info when delete it.
-func (h Hook) ValidateDelete() error {
+func (h Hook) ValidateDelete(kit *kit.Kit) error {
 	if h.ID <= 0 {
-		return errors.New("hook id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if h.Attachment.BizID <= 0 {
-		return errors.New("biz id should be set")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	return nil
@@ -102,7 +103,7 @@ func (h Hook) ValidateDelete() error {
 // ValidateUpdate validate the hook's info when update it.
 func (h Hook) ValidateUpdate(kit *kit.Kit) error {
 	if h.ID <= 0 {
-		return errors.New("hook id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if h.Spec != nil {
@@ -112,18 +113,18 @@ func (h Hook) ValidateUpdate(kit *kit.Kit) error {
 	}
 
 	if h.Attachment == nil {
-		return errors.New("attachment should be set")
+		return errf.ErrNoAttachmentF(kit)
 	}
 
-	if err := h.Attachment.Validate(); err != nil {
+	if err := h.Attachment.Validate(kit); err != nil {
 		return err
 	}
 
 	if h.Revision == nil {
-		return errors.New("revision not set")
+		return errf.ErrNoRevisionF(kit)
 	}
 
-	if err := h.Revision.ValidateUpdate(); err != nil {
+	if err := h.Revision.ValidateUpdate(kit); err != nil {
 		return err
 	}
 
@@ -162,7 +163,7 @@ func (s ScriptType) String() string {
 }
 
 // Validate validate the hook type
-func (s ScriptType) Validate() error {
+func (s ScriptType) Validate(kit *kit.Kit) error {
 	if s == "" {
 		return nil
 	}
@@ -172,7 +173,7 @@ func (s ScriptType) Validate() error {
 	case Bat:
 	case PowerShell:
 	default:
-		return fmt.Errorf("unsupported hook type: %s", s)
+		return errors.New(i18n.T(kit, "unsupported hook type: %s", s))
 	}
 
 	return nil
@@ -188,7 +189,7 @@ func (s HookSpec) ValidateCreate(kit *kit.Kit) error {
 		return err
 	}
 
-	if err := s.Type.Validate(); err != nil {
+	if err := s.Type.Validate(kit); err != nil {
 		return err
 	}
 
@@ -223,9 +224,9 @@ func (s HookAttachment) IsEmpty() bool {
 }
 
 // Validate whether hook attachment is valid or not.
-func (s HookAttachment) Validate() error {
+func (s HookAttachment) Validate(kit *kit.Kit) error {
 	if s.BizID <= 0 {
-		return errors.New("invalid attachment biz id")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	return nil

@@ -17,6 +17,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/dal/table"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 )
 
 // PublishOption defines options to publish a strategy
@@ -32,7 +33,7 @@ type PublishOption struct {
 }
 
 // Validate options is valid or not.
-func (ps *PublishOption) Validate() error {
+func (ps *PublishOption) Validate(kit *kit.Kit) error {
 	if ps.BizID <= 0 {
 		return errf.New(errf.InvalidParameter, "biz_id is invalid")
 	}
@@ -57,7 +58,7 @@ func (ps *PublishOption) Validate() error {
 		return errf.New(errf.InvalidParameter, "revision is not set")
 	}
 
-	if err := ps.Revision.Validate(); err != nil {
+	if err := ps.Revision.Validate(kit); err != nil {
 		return errf.New(errf.InvalidParameter, fmt.Sprintf("invalid revision %v", err))
 	}
 

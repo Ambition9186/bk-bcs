@@ -17,7 +17,9 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/enumor"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/validator"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 )
 
@@ -64,12 +66,13 @@ func (r *Release) ResType() string {
 
 // ValidateCreate a release's information
 func (r Release) ValidateCreate(kit *kit.Kit) error {
+
 	if r.ID != 0 {
-		return errors.New("id should not set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if r.Spec == nil {
-		return errors.New("spec should be set")
+		return errf.ErrNoSpecF(kit)
 	}
 
 	if err := r.Spec.Validate(kit); err != nil {
@@ -77,7 +80,7 @@ func (r Release) ValidateCreate(kit *kit.Kit) error {
 	}
 
 	if r.Attachment == nil {
-		return errors.New("attachment should be set")
+		return errors.New(i18n.T(kit, "attachment should be set"))
 	}
 
 	if err := r.Attachment.Validate(); err != nil {
@@ -85,10 +88,10 @@ func (r Release) ValidateCreate(kit *kit.Kit) error {
 	}
 
 	if r.Revision == nil {
-		return errors.New("revision should be set")
+		return errors.New(i18n.T(kit, "revision should be set"))
 	}
 
-	if err := r.Revision.Validate(); err != nil {
+	if err := r.Revision.Validate(kit); err != nil {
 		return err
 	}
 

@@ -312,7 +312,7 @@ func (dao *hookRevisionDao) ListHookRevisionReferences(kit *kit.Kit, opt *types.
 func (dao *hookRevisionDao) DeleteWithTx(kit *kit.Kit, tx *gen.QueryTx, hr *table.HookRevision) error {
 
 	// 参数校验
-	if err := hr.ValidateDelete(); err != nil {
+	if err := hr.ValidateDelete(kit); err != nil {
 		return err
 	}
 
@@ -391,7 +391,7 @@ func (dao *hookRevisionDao) GetByPubState(kit *kit.Kit,
 // UpdatePubStateWithTx update hookRevision State instance with transaction.
 func (dao *hookRevisionDao) UpdatePubStateWithTx(kit *kit.Kit, tx *gen.QueryTx, hr *table.HookRevision) error {
 
-	if err := hr.ValidatePublish(); err != nil {
+	if err := hr.ValidatePublish(kit); err != nil {
 		return err
 	}
 

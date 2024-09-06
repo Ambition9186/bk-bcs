@@ -13,8 +13,12 @@
 package types
 
 import (
+	"errors"
+
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/dal/table"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/runtime/filter"
 )
 
@@ -27,17 +31,17 @@ type ListConfigItemsOption struct {
 }
 
 // Validate the list config item options
-func (opt *ListConfigItemsOption) Validate(po *PageOption) error {
+func (opt *ListConfigItemsOption) Validate(kit *kit.Kit, po *PageOption) error {
 	if opt.BizID <= 0 {
-		return errf.New(errf.InvalidParameter, "invalid biz id, should >= 1")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if opt.AppID <= 0 {
-		return errf.New(errf.InvalidParameter, "invalid app id, should >= 1")
+		return errf.ErrInvalidAppIDF(kit)
 	}
 
 	if opt.Filter == nil {
-		return errf.New(errf.InvalidParameter, "filter is nil")
+		return errf.ErrInvalidArgF(kit)
 	}
 
 	exprOpt := &filter.ExprOption{
@@ -45,14 +49,14 @@ func (opt *ListConfigItemsOption) Validate(po *PageOption) error {
 		RuleFields: table.ConfigItemColumns.WithoutColumn("biz_id", "app_id"),
 	}
 	if err := opt.Filter.Validate(exprOpt); err != nil {
-		return err
+		return errors.New(i18n.T(kit, "filter provides expression filter failed, err: %v", err))
 	}
 
 	if opt.Page == nil {
-		return errf.New(errf.InvalidParameter, "page is null")
+		return i18n.TranslateError(kit, i18n.ErrInvalidPage)
 	}
 
-	if err := opt.Page.Validate(po); err != nil {
+	if err := opt.Page.Validate(kit, po); err != nil {
 		return err
 	}
 

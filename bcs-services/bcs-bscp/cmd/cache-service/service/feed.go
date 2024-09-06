@@ -206,7 +206,7 @@ func (s *Service) ListEventsMeta(ctx context.Context, req *pbcs.ListEventsReq) (
 	}
 
 	opt := req.Page.BasePage()
-	if err := opt.Validate(types.DefaultPageOption); err != nil {
+	if err := opt.Validate(kt, types.DefaultPageOption); err != nil {
 		return nil, err
 	}
 

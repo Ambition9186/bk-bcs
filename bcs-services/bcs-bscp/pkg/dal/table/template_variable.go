@@ -53,7 +53,7 @@ func (t *TemplateVariable) ResType() string {
 // ValidateCreate validate template variable is valid or not when create it.
 func (t *TemplateVariable) ValidateCreate(kit *kit.Kit) error {
 	if t.ID > 0 {
-		return errf.ErrWithIDF(kit)
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if t.Spec == nil {
@@ -76,7 +76,7 @@ func (t *TemplateVariable) ValidateCreate(kit *kit.Kit) error {
 		return errf.ErrNoRevisionF(kit)
 	}
 
-	if err := t.Revision.ValidateCreate(); err != nil {
+	if err := t.Revision.ValidateCreate(kit); err != nil {
 		return err
 	}
 

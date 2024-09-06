@@ -17,7 +17,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/validator"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 )
 
@@ -69,7 +71,7 @@ func (r *HookRevision) ResType() string {
 func (r *HookRevision) ValidateCreate(kit *kit.Kit) error {
 
 	if r.Spec == nil {
-		return errors.New("spec not set")
+		return errf.ErrNoSpecF(kit)
 	}
 
 	if err := r.Spec.ValidateCreate(kit); err != nil {
@@ -77,18 +79,18 @@ func (r *HookRevision) ValidateCreate(kit *kit.Kit) error {
 	}
 
 	if r.Attachment == nil {
-		return errors.New("attachment not set")
+		return errf.ErrNoAttachmentF(kit)
 	}
 
-	if err := r.Attachment.Validate(); err != nil {
+	if err := r.Attachment.Validate(kit); err != nil {
 		return err
 	}
 
 	if r.Revision == nil {
-		return errors.New("revision not set")
+		return errf.ErrNoRevisionF(kit)
 	}
 
-	if err := r.Revision.ValidateCreate(); err != nil {
+	if err := r.Revision.ValidateCreate(kit); err != nil {
 		return err
 	}
 
@@ -107,7 +109,7 @@ func (s *HookRevisionSpec) ValidateCreate(kit *kit.Kit) error {
 	}
 
 	if strings.Trim(strings.Trim(s.Content, ""), "\n") == "" {
-		return errors.New("content should not be empty")
+		return errors.New(i18n.T(kit, "content should not be empty"))
 	}
 
 	return nil
@@ -125,70 +127,70 @@ func (s *HookRevisionSpec) ValidateUpdate(kit *kit.Kit) error {
 	}
 
 	if strings.Trim(strings.Trim(s.Content, ""), "\n") == "" {
-		return errors.New("content should not be empty")
+		return errors.New(i18n.T(kit, "content should not be empty"))
 	}
 
 	return nil
 }
 
 // Validate validate Attachment.
-func (a HookRevisionAttachment) Validate() error {
+func (a HookRevisionAttachment) Validate(kit *kit.Kit) error {
 
 	if a.BizID <= 0 {
-		return errors.New("biz id should be set")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if a.HookID <= 0 {
-		return errors.New("hook id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	return nil
 }
 
 // ValidateDelete validate the hook revision info when delete it.
-func (r HookRevision) ValidateDelete() error {
+func (r HookRevision) ValidateDelete(kit *kit.Kit) error {
 	if r.ID <= 0 {
-		return errors.New("hook revision id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if r.Attachment.BizID <= 0 {
-		return errors.New("biz id should be set")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if r.Attachment.HookID <= 0 {
-		return errors.New("hook id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	return nil
 }
 
 // ValidateDeleteByHookID validate the hook revision info when delete it.
-func (r HookRevision) ValidateDeleteByHookID() error {
+func (r HookRevision) ValidateDeleteByHookID(kit *kit.Kit) error {
 
 	if r.Attachment.BizID <= 0 {
-		return errors.New("biz id should be set")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if r.Attachment.HookID <= 0 {
-		return errors.New("hook id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	return nil
 }
 
 // ValidatePublish validate the Publish
-func (r HookRevision) ValidatePublish() error {
+func (r HookRevision) ValidatePublish(kit *kit.Kit) error {
 
 	if r.ID <= 0 {
-		return errors.New("hook revision id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if r.Attachment.BizID <= 0 {
-		return errors.New("biz id should be set")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if r.Attachment.HookID <= 0 {
-		return errors.New("hook id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	return nil
@@ -198,19 +200,19 @@ func (r HookRevision) ValidatePublish() error {
 func (r HookRevision) ValidateUpdate(kit *kit.Kit) error {
 
 	if r.ID <= 0 {
-		return errors.New("hook revision id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if r.Attachment.BizID <= 0 {
-		return errors.New("biz id should be set")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if r.Attachment.HookID <= 0 {
-		return errors.New("hook id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if r.Spec == nil {
-		return errors.New("spec not set")
+		return errf.ErrNoSpecF(kit)
 	}
 
 	if err := r.Spec.ValidateUpdate(kit); err != nil {
@@ -218,10 +220,10 @@ func (r HookRevision) ValidateUpdate(kit *kit.Kit) error {
 	}
 
 	if r.Revision == nil {
-		return errors.New("revision not set")
+		return errf.ErrNoRevisionF(kit)
 	}
 
-	if err := r.Revision.ValidateUpdate(); err != nil {
+	if err := r.Revision.ValidateUpdate(kit); err != nil {
 		return err
 	}
 
@@ -248,13 +250,13 @@ func (s HookRevisionStatus) String() string {
 }
 
 // Validate strategy set type.
-func (s HookRevisionStatus) Validate() error {
+func (s HookRevisionStatus) Validate(kit *kit.Kit) error {
 	switch s {
 	case HookRevisionStatusShutdown:
 	case HookRevisionStatusNotDeployed:
 	case HookRevisionStatusDeployed:
 	default:
-		return fmt.Errorf("unsupported hook revision status: %s", s)
+		return fmt.Errorf(i18n.T(kit, "unsupported hook revision status: %s", s))
 	}
 
 	return nil

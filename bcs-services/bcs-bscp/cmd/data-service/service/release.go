@@ -48,11 +48,11 @@ func (s *Service) CreateRelease(ctx context.Context, req *pbds.CreateReleaseReq)
 	app, err := s.dao.App().GetByID(grpcKit, req.Attachment.AppId)
 	if err != nil {
 		logs.Errorf("get app failed, err: %v, rid: %s", err, grpcKit.Rid)
-		return nil, err
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(grpcKit, "get app failed, err: %v", err))
 	}
 
 	if _, e := s.dao.Release().GetByName(grpcKit, req.Attachment.BizId, req.Attachment.AppId, req.Spec.Name); e == nil {
-		return nil, fmt.Errorf("release name %s already exists", req.Spec.Name)
+		return nil, errors.New(i18n.T(grpcKit, "release name %s already exists", req.Spec.Name))
 	}
 	// begin transaction to create release and released config item.
 	tx := s.dao.GenQuery().Begin()
@@ -90,7 +90,7 @@ func (s *Service) CreateRelease(ctx context.Context, req *pbds.CreateReleaseReq)
 		if rErr := tx.Rollback(); rErr != nil {
 			logs.Errorf("transaction rollback failed, err: %v, rid: %s", rErr, grpcKit.Rid)
 		}
-		return nil, err
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(grpcKit, "query released pre-hook failed, err: %v", err))
 	}
 	post, err := s.dao.ReleasedHook().Get(grpcKit, req.Attachment.BizId, req.Attachment.AppId, 0, table.PostHook)
 	if err == nil {
@@ -108,7 +108,7 @@ func (s *Service) CreateRelease(ctx context.Context, req *pbds.CreateReleaseReq)
 		if rErr := tx.Rollback(); rErr != nil {
 			logs.Errorf("transaction rollback failed, err: %v, rid: %s", rErr, grpcKit.Rid)
 		}
-		return nil, err
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(grpcKit, "query released post-hook failed, err: %v", err))
 	}
 
 	switch app.Spec.ConfigType {

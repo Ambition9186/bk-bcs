@@ -14,8 +14,12 @@
 package types
 
 import (
+	"errors"
+
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/dal/table"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/runtime/filter"
 )
 
@@ -27,13 +31,13 @@ type ListAuditsOption struct {
 }
 
 // Validate the list audit options
-func (lao *ListAuditsOption) Validate(po *PageOption) error {
+func (lao *ListAuditsOption) Validate(kit *kit.Kit, po *PageOption) error {
 	if lao.BizID <= 0 {
-		return errf.New(errf.InvalidParameter, "invalid biz id, should >= 1")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if lao.Filter == nil {
-		return errf.New(errf.InvalidParameter, "filter is nil")
+		return errf.ErrInvalidArgF(kit)
 	}
 
 	exprOpt := &filter.ExprOption{
@@ -41,14 +45,14 @@ func (lao *ListAuditsOption) Validate(po *PageOption) error {
 		RuleFields: table.AuditColumns.WithoutColumn("biz_id"),
 	}
 	if err := lao.Filter.Validate(exprOpt); err != nil {
-		return err
+		return errors.New(i18n.T(kit, "filter provides expression filter failed, err: %v", err))
 	}
 
 	if lao.Page == nil {
 		return errf.New(errf.InvalidParameter, "page is null")
 	}
 
-	if err := lao.Page.Validate(po); err != nil {
+	if err := lao.Page.Validate(kit, po); err != nil {
 		return err
 	}
 

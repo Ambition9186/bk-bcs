@@ -16,6 +16,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/iam/meta"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/logs"
@@ -49,8 +50,7 @@ func (s *Service) CreateRelease(ctx context.Context, req *pbcs.CreateReleaseReq)
 		return nil, err
 	}
 	if ci.ConflictNumber > 0 {
-		logs.Errorf("create release failed there is a file conflict, err: %v, rid: %s", err, grpcKit.Rid)
-		return nil, errors.New("create release failed there is a file conflict")
+		return nil, errors.New(i18n.T(grpcKit, "create release failed there is a file conflict"))
 	}
 
 	r := &pbds.CreateReleaseReq{

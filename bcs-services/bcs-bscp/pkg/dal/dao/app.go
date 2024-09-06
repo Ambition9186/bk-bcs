@@ -269,10 +269,10 @@ func (dao *appDao) Update(kit *kit.Kit, g *table.App) error {
 // DeleteWithTx delete one app instance with transaction.
 func (dao *appDao) DeleteWithTx(kit *kit.Kit, tx *gen.QueryTx, g *table.App) error {
 	if g == nil {
-		return errors.New("app is nil")
+		return errf.ErrCredentialInvalid
 	}
 
-	if err := g.ValidateDelete(); err != nil {
+	if err := g.ValidateDelete(kit); err != nil {
 		return err
 	}
 

@@ -15,7 +15,10 @@ package types
 import (
 	"errors"
 
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/dal/table"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 )
 
 // UpsertKvOption is used to define options for inserting or updating key-value data.
@@ -28,24 +31,24 @@ type UpsertKvOption struct {
 }
 
 // Validate is used to validate the effectiveness of the UpsertKvOption structure.
-func (o *UpsertKvOption) Validate() error {
+func (o *UpsertKvOption) Validate(kit *kit.Kit) error {
 	if o.BizID <= 0 {
-		return errors.New("invalid biz id, should >= 1")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if o.AppID <= 0 {
-		return errors.New("invalid app id, should >= 1")
+		return errf.ErrInvalidAppIDF(kit)
 	}
 
 	if o.Key == "" {
-		return errors.New("kv key is required")
+		return errors.New(i18n.T(kit, "kv key is required"))
 	}
 
 	if o.Value == "" {
-		return errors.New("kv value is required")
+		return errors.New(i18n.T(kit, "kv value is required"))
 	}
 
-	if err := o.KvType.ValidateValue(o.Value); err != nil {
+	if err := o.KvType.ValidateValue(kit, o.Value); err != nil {
 		return err
 	}
 

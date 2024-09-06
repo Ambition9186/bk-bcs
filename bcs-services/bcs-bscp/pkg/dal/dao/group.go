@@ -18,7 +18,9 @@ import (
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/dal/gen"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/dal/table"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/logs"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/types"
 )
 
@@ -73,17 +75,17 @@ func (dao *groupDao) ListAppValidGroups(kit *kit.Kit, bizID, appID uint32) (
 func (dao *groupDao) CreateWithTx(kit *kit.Kit, tx *gen.QueryTx, g *table.Group) (uint32, error) {
 
 	if g == nil {
-		return 0, errf.New(errf.InvalidParameter, "group is nil")
+		return 0, errf.ErrInvalidArgF(kit)
 	}
 
 	if err := g.ValidateCreate(kit); err != nil {
-		return 0, errf.New(errf.InvalidParameter, err.Error())
+		return 0, err
 	}
 
 	// generate a group id and update to group.
 	id, err := dao.idGen.One(kit, table.GroupTable)
 	if err != nil {
-		return 0, err
+		return 0, errf.Errorf(errf.DBOpFailed, i18n.T(kit, "generate a group id failed, err: %v", err))
 	}
 
 	g.ID = id
@@ -93,7 +95,7 @@ func (dao *groupDao) CreateWithTx(kit *kit.Kit, tx *gen.QueryTx, g *table.Group)
 
 	ad := dao.auditDao.DecoratorV2(kit, g.Attachment.BizID).PrepareCreate(g)
 	if err = ad.Do(tx.Query); err != nil {
-		return 0, fmt.Errorf("audit create group failed, err: %v", err)
+		return 0, errf.Errorf(errf.DBOpFailed, i18n.T(kit, "create group failed, err: %v", err))
 	}
 
 	return id, nil
@@ -103,18 +105,18 @@ func (dao *groupDao) CreateWithTx(kit *kit.Kit, tx *gen.QueryTx, g *table.Group)
 func (dao *groupDao) UpdateWithTx(kit *kit.Kit, tx *gen.QueryTx, g *table.Group) error {
 
 	if g == nil {
-		return errf.New(errf.InvalidParameter, "group is nil")
+		return errf.ErrInvalidArgF(kit)
 	}
 
 	if err := g.ValidateUpdate(kit); err != nil {
-		return errf.New(errf.InvalidParameter, err.Error())
+		return err
 	}
 
 	m := tx.Group
 
 	oldOne, err := m.WithContext(kit.Ctx).Where(m.ID.Eq(g.ID), m.BizID.Eq(g.Attachment.BizID)).Take()
 	if err != nil {
-		return err
+		return errf.Errorf(errf.DBOpFailed, i18n.T(kit, "get group failed, err: %v", err))
 	}
 	ad := dao.auditDao.DecoratorV2(kit, g.Attachment.BizID).PrepareUpdate(g, oldOne)
 
@@ -123,11 +125,12 @@ func (dao *groupDao) UpdateWithTx(kit *kit.Kit, tx *gen.QueryTx, g *table.Group)
 		Select(m.Name, m.Public, m.Selector, m.UID, m.Reviser).
 		Updates(g)
 	if err != nil {
-		return err
+		return errf.Errorf(errf.DBOpFailed, i18n.T(kit, "update group failed, err: %v", err))
 	}
 
 	if err = ad.Do(tx.Query); err != nil {
-		return fmt.Errorf("audit update group failed, err: %v", err)
+		logs.Errorf("audit update group failed, err: %v, rid: %s", err, kit.Rid)
+		return errf.Errorf(errf.DBOpFailed, i18n.T(kit, "update group failed, err: %v", err))
 	}
 	return nil
 }
@@ -136,35 +139,47 @@ func (dao *groupDao) UpdateWithTx(kit *kit.Kit, tx *gen.QueryTx, g *table.Group)
 func (dao *groupDao) Get(kit *kit.Kit, id, bizID uint32) (*table.Group, error) {
 
 	if bizID == 0 || id == 0 {
-		return nil, errf.New(errf.InvalidParameter, "bizID or id is 0")
+		return nil, errf.ErrInvalidArgF(kit)
 	}
 
 	if id == 0 {
-		return nil, errf.New(errf.InvalidParameter, "group id can not be 0")
+		return nil, errf.ErrInvalidIDF(kit)
 	}
 	m := dao.genQ.Group
-	return m.WithContext(kit.Ctx).Where(m.ID.Eq(id), m.BizID.Eq(bizID)).Take()
+	group, err := m.WithContext(kit.Ctx).Where(m.ID.Eq(id), m.BizID.Eq(bizID)).Take()
+	if err != nil {
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kit, "get group failed, err: %v", err))
+	}
+	return group, nil
 }
 
 // GetByName get group by name.
 func (dao *groupDao) GetByName(kit *kit.Kit, bizID uint32, name string) (*table.Group, error) {
 
 	if bizID == 0 || name == "" {
-		return nil, errf.New(errf.InvalidParameter, "biz id or name is empty")
+		return nil, errf.ErrInvalidArgF(kit)
 	}
 
 	m := dao.genQ.Group
-	return m.WithContext(kit.Ctx).Where(m.Name.Eq(name), m.BizID.Eq(bizID)).Take()
+	group, err := m.WithContext(kit.Ctx).Where(m.Name.Eq(name), m.BizID.Eq(bizID)).Take()
+	if err != nil {
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kit, "query group by name %s failed, err: %v", name, err))
+	}
+	return group, nil
 }
 
 // ListAll list all the groups in biz.
 func (dao *groupDao) ListAll(kit *kit.Kit, bizID uint32) ([]*table.Group, error) {
 
 	if bizID == 0 {
-		return nil, errf.New(errf.InvalidParameter, "biz id is 0")
+		return nil, errf.ErrInvalidBizIDF(kit)
 	}
 	m := dao.genQ.Group
-	return m.WithContext(kit.Ctx).Where(m.BizID.Eq(bizID)).Find()
+	groups, err := m.WithContext(kit.Ctx).Where(m.BizID.Eq(bizID)).Find()
+	if err != nil {
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kit, "list groups failed, err: %v", err))
+	}
+	return groups, nil
 
 }
 
@@ -172,26 +187,26 @@ func (dao *groupDao) ListAll(kit *kit.Kit, bizID uint32) ([]*table.Group, error)
 func (dao *groupDao) DeleteWithTx(kit *kit.Kit, tx *gen.QueryTx, g *table.Group) error {
 
 	if g == nil {
-		return errf.New(errf.InvalidParameter, "group is nil")
+		return errf.ErrInvalidArgF(kit)
 	}
 
-	if err := g.ValidateDelete(); err != nil {
-		return errf.New(errf.InvalidParameter, err.Error())
+	if err := g.ValidateDelete(kit); err != nil {
+		return err
 	}
 
 	m := tx.Group
 	oldOne, err := m.WithContext(kit.Ctx).Where(m.ID.Eq(g.ID), m.BizID.Eq(g.Attachment.BizID)).Take()
 	if err != nil {
-		return err
+		return errf.Errorf(errf.DBOpFailed, i18n.T(kit, "get group failed, err: %v", err))
 	}
 
 	ad := dao.auditDao.DecoratorV2(kit, g.Attachment.BizID).PrepareDelete(oldOne)
 
 	if _, err = m.WithContext(kit.Ctx).Where(m.ID.Eq(g.ID), m.BizID.Eq(g.Attachment.BizID)).Delete(); err != nil {
-		return err
+		return errf.Errorf(errf.DBOpFailed, i18n.T(kit, "delete group failed, err: %v", err))
 	}
 	if err = ad.Do(tx.Query); err != nil {
-		return err
+		return errf.Errorf(errf.DBOpFailed, i18n.T(kit, "delete group failed, err: %v", err))
 	}
 	return nil
 }
@@ -200,7 +215,7 @@ func (dao *groupDao) DeleteWithTx(kit *kit.Kit, tx *gen.QueryTx, g *table.Group)
 func (dao *groupDao) ListAppGroups(kit *kit.Kit, bizID, appID uint32) ([]*table.Group, error) {
 
 	if bizID == 0 || appID == 0 {
-		return nil, errf.New(errf.InvalidParameter, "bizID or appID is 0")
+		return nil, errf.ErrInvalidArgF(kit)
 	}
 	gabM := dao.genQ.GroupAppBind
 	gabQ := dao.genQ.GroupAppBind.WithContext(kit.Ctx)
@@ -209,19 +224,22 @@ func (dao *groupDao) ListAppGroups(kit *kit.Kit, bizID, appID uint32) ([]*table.
 	groupQ := dao.genQ.Group.WithContext(kit.Ctx)
 
 	subQuery := gabQ.Select(gabM.GroupID).Where(gabM.BizID.Eq(bizID), gabM.AppID.Eq(appID))
-	return groupQ.
-		Where(groupM.BizID.Eq(bizID)).Where(
+	groups, err := groupQ.Where(groupM.BizID.Eq(bizID)).Where(
 		groupQ.Where(groupQ.Columns(groupM.ID).In(subQuery)).Or(groupM.Public.Is(true))).
 		Find()
+	if err != nil {
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kit, "list app groups failed, err: %v", err))
+	}
+	return groups, nil
 }
 
 // ListGroupReleasedApps list group released apps and their latest release info.
 func (dao *groupDao) ListGroupReleasedApps(kit *kit.Kit, opts *types.ListGroupReleasedAppsOption) (
 	*types.ListGroupReleasedAppsDetails, error) {
 	if opts == nil {
-		return nil, errf.New(errf.InvalidParameter, "list group released apps options null")
+		return nil, errf.New(errf.InvalidParameter, i18n.T(kit, "list group released apps options null"))
 	}
-	if err := opts.Validate(); err != nil {
+	if err := opts.Validate(kit); err != nil {
 		return nil, err
 	}
 
@@ -251,7 +269,7 @@ func (dao *groupDao) ListGroupReleasedApps(kit *kit.Kit, opts *types.ListGroupRe
 	}
 
 	if err != nil {
-		return nil, err
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kit, "list group released apps failed, err: %v", err))
 	}
 
 	return &types.ListGroupReleasedAppsDetails{

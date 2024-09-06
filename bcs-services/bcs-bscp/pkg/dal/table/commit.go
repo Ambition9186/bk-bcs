@@ -89,7 +89,7 @@ func (c Commit) ValidateCreate(kit *kit.Kit) error {
 		return errors.New("revision should be set")
 	}
 
-	if err := c.Revision.Validate(); err != nil {
+	if err := c.Revision.Validate(kit); err != nil {
 		return err
 	}
 
@@ -141,11 +141,11 @@ func (c CommitSpec) Validate(kit *kit.Kit) error {
 // Validate released commit specifics.
 func (c ReleasedCommitSpec) Validate(kit *kit.Kit) error {
 	if c.ContentID <= 0 {
-		return errors.New("invalid commit spec's content id")
+		return errors.New(i18n.T(kit, "invalid commit spec's content id"))
 	}
 
 	if c.Content == nil {
-		return errors.New("commit spec's content is empty")
+		return errors.New(i18n.T(kit, "commit spec's content is empty"))
 	}
 
 	if err := validator.ValidateMemo(kit, c.Memo, false); err != nil {

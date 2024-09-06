@@ -88,7 +88,7 @@ func (c Content) ValidateCreate(kit *kit.Kit) error {
 		return errors.New("revision should be set")
 	}
 
-	if err := c.Revision.Validate(); err != nil {
+	if err := c.Revision.Validate(kit); err != nil {
 		return err
 	}
 

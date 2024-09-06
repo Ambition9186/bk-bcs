@@ -111,7 +111,7 @@ func (ef *EDecorator) Fire(es ...types.Event) error {
 		return nil
 	}
 	for _, one := range es {
-		if err := one.Validate(); err != nil {
+		if err := one.Validate(ef.kit); err != nil {
 			return err
 		}
 	}
@@ -155,7 +155,7 @@ func (ef *EDecorator) FireWithTx(tx *gen.QueryTx, es ...types.Event) error {
 		return nil
 	}
 	for _, one := range es {
-		if err := one.Validate(); err != nil {
+		if err := one.Validate(ef.kit); err != nil {
 			return err
 		}
 	}

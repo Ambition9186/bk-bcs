@@ -14,8 +14,10 @@ package table
 
 import (
 	"errors"
-	"fmt"
 	"time"
+
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 )
 
 // ReleasedHook defines a released hook with release info and hook revision info
@@ -59,7 +61,7 @@ func (s HookType) String() string {
 }
 
 // Validate validate the hook type
-func (s HookType) Validate() error {
+func (s HookType) Validate(kit *kit.Kit) error {
 	if s == "" {
 		return nil
 	}
@@ -67,39 +69,39 @@ func (s HookType) Validate() error {
 	case PreHook:
 	case PostHook:
 	default:
-		return fmt.Errorf("unsupported hook type: %s", s)
+		return errors.New(i18n.T(kit, "unsupported hook type: %s", s))
 	}
 
 	return nil
 }
 
 // ValidateCreate validate the group app's specific when create it.
-func (c ReleasedHook) ValidateCreate() error {
+func (c ReleasedHook) ValidateCreate(kit *kit.Kit) error {
 	if c.ID != 0 {
-		return errors.New("group app id can not be set")
+		return errors.New(i18n.T(kit, "id can not be set"))
 	}
 	if c.AppID <= 0 {
-		return errors.New("app id should be set")
+		return errors.New(i18n.T(kit, "app id should be set"))
 	}
 	if c.HookID <= 0 {
-		return errors.New("hook id should be set")
+		return errors.New(i18n.T(kit, "hook id should be set"))
 	}
 	if c.HookName == "" {
-		return errors.New("hook name should be set")
+		return errors.New(i18n.T(kit, "hook name should be set"))
 	}
 	if c.HookRevisionID <= 0 {
-		return errors.New("hook revision id should be set")
+		return errors.New(i18n.T(kit, "hook revision id should be set"))
 	}
 	if c.HookRevisionName == "" {
-		return errors.New("hook revision name should be set")
+		return errors.New(i18n.T(kit, "hook revision name should be set"))
 	}
 	if c.Content == "" {
-		return errors.New("content should be set")
+		return errors.New(i18n.T(kit, "hook content cannot be empty"))
 	}
-	if err := c.ScriptType.Validate(); err != nil {
+	if err := c.ScriptType.Validate(kit); err != nil {
 		return err
 	}
-	if err := c.HookType.Validate(); err != nil {
+	if err := c.HookType.Validate(kit); err != nil {
 		return err
 	}
 	if c.BizID <= 0 {

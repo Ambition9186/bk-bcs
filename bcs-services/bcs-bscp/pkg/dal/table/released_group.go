@@ -17,6 +17,8 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/enumor"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/runtime/selector"
 )
 
@@ -64,21 +66,21 @@ func (c ReleasedGroup) TableName() string {
 }
 
 // ValidateCreate validate the group app's specific when create it.
-func (c ReleasedGroup) ValidateCreate() error {
+func (c ReleasedGroup) ValidateCreate(kit *kit.Kit) error {
 	if c.ID != 0 {
-		return errors.New("group app id can not be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if c.GroupID <= 0 {
-		return errors.New("group id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 	if c.AppID <= 0 {
-		return errors.New("app id should be set")
+		return errf.ErrInvalidAppIDF(kit)
 	}
 	if c.BizID <= 0 {
-		return errors.New("biz id should be set")
+		return errf.ErrInvalidBizIDF(kit)
 	}
-	if err := c.Mode.Validate(); err != nil {
+	if err := c.Mode.Validate(kit); err != nil {
 		return err
 	}
 	if c.Mode == GroupModeCustom && c.Selector == nil {

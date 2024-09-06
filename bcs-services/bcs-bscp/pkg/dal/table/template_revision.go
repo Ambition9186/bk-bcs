@@ -73,7 +73,7 @@ func (t *TemplateRevision) ValidateCreate(kit *kit.Kit) error {
 		return errors.New("revision not set")
 	}
 
-	if err := t.Revision.Validate(); err != nil {
+	if err := t.Revision.Validate(kit); err != nil {
 		return err
 	}
 

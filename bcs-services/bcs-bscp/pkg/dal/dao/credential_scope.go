@@ -60,7 +60,7 @@ func (dao *credentialScopeDao) ListByCredentialIDs(kit *kit.Kit, credentialIDs [
 
 // CreateWithTx create credential scope with transaction
 func (dao *credentialScopeDao) CreateWithTx(kit *kit.Kit, tx *gen.QueryTx, g *table.CredentialScope) (uint32, error) {
-	if err := g.ValidateCreate(); err != nil {
+	if err := g.ValidateCreate(kit); err != nil {
 		return 0, err
 	}
 
@@ -138,7 +138,7 @@ func (dao *credentialScopeDao) DeleteWithTx(kit *kit.Kit, tx *gen.QueryTx, bizID
 
 // UpdateWithTx update credential scope with transaction
 func (dao *credentialScopeDao) UpdateWithTx(kit *kit.Kit, tx *gen.QueryTx, g *table.CredentialScope) error {
-	if err := g.ValidateUpdate(); err != nil {
+	if err := g.ValidateUpdate(kit); err != nil {
 		return err
 	}
 

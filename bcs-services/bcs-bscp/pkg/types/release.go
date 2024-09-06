@@ -15,6 +15,8 @@ package types
 import (
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/dal/table"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 )
 
 // ListReleasesOption defines options to list release.
@@ -27,20 +29,20 @@ type ListReleasesOption struct {
 }
 
 // Validate the list release options
-func (opt *ListReleasesOption) Validate(po *PageOption) error {
+func (opt *ListReleasesOption) Validate(kit *kit.Kit, po *PageOption) error {
 	if opt.BizID <= 0 {
-		return errf.New(errf.InvalidParameter, "invalid biz id, should >= 1")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if opt.AppID <= 0 {
-		return errf.New(errf.InvalidParameter, "invalid app id, should >= 1")
+		return errf.ErrInvalidAppIDF(kit)
 	}
 
 	if opt.Page == nil {
-		return errf.New(errf.InvalidParameter, "page is null")
+		return i18n.TranslateError(kit, i18n.ErrInvalidPage)
 	}
 
-	if err := opt.Page.Validate(po); err != nil {
+	if err := opt.Page.Validate(kit, po); err != nil {
 		return err
 	}
 

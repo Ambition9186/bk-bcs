@@ -19,9 +19,11 @@ import (
 	rawgen "gorm.io/gen"
 	"gorm.io/gorm"
 
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/dal/gen"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/dal/table"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/dal/utils"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/types"
 )
@@ -68,8 +70,12 @@ func (dao *appTemplateBindingDao) GetAppTemplateBindingByAppIDWithTx(kit *kit.Ki
 	appID uint32) (*table.AppTemplateBinding, error) {
 
 	m := dao.genQ.AppTemplateBinding
+	item, err := tx.AppTemplateBinding.WithContext(kit.Ctx).Where(m.BizID.Eq(bizID), m.AppID.Eq(appID)).Take()
+	if err != nil {
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kit, "get app template binding failed, err: %v", err))
+	}
 
-	return tx.AppTemplateBinding.WithContext(kit.Ctx).Where(m.BizID.Eq(bizID), m.AppID.Eq(appID)).Take()
+	return item, nil
 }
 
 // GetBindingAppByTemplateSetID 通过套餐ID获取绑定的服务
@@ -92,7 +98,12 @@ func (dao *appTemplateBindingDao) GetBindingAppByTemplateSetID(kit *kit.Kit, biz
 		}
 	}
 
-	return q.Where(conds...).Find()
+	items, err := q.Where(conds...).Find()
+	if err != nil {
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kit, "list app template binding's failed, err: %v", err))
+	}
+
+	return items, nil
 }
 
 // BatchUpdateWithTx batch update app template binding's instances with transaction.
@@ -102,14 +113,17 @@ func (dao *appTemplateBindingDao) BatchUpdateWithTx(kit *kit.Kit, tx *gen.QueryT
 		return nil
 	}
 	for _, g := range data {
-		if err := g.ValidateUpdate(); err != nil {
+		if err := g.ValidateUpdate(kit); err != nil {
 			return err
 		}
 		if err := dao.validateAttachmentExist(kit, g.Attachment); err != nil {
 			return err
 		}
 	}
-	return tx.AppTemplateBinding.WithContext(kit.Ctx).Save(data...)
+	if err := tx.AppTemplateBinding.WithContext(kit.Ctx).Save(data...); err != nil {
+		return errf.Errorf(errf.DBOpFailed, i18n.T(kit, " batch update app template binding's failed, err: %v", err))
+	}
+	return nil
 }
 
 // ListAppTemplateBindingByAppIds 按 AppId 列出应用模板绑定
@@ -117,9 +131,13 @@ func (dao *appTemplateBindingDao) ListAppTemplateBindingByAppIds(kit *kit.Kit, b
 	[]*table.AppTemplateBinding, error) {
 
 	m := dao.genQ.AppTemplateBinding
-	return dao.genQ.AppTemplateBinding.WithContext(kit.Ctx).
+	items, err := dao.genQ.AppTemplateBinding.WithContext(kit.Ctx).
 		Where(m.BizID.Eq(bizID), m.AppID.In(appIDs...)).
 		Find()
+	if err != nil {
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kit, "list app template binding's failed, err: %v", err))
+	}
+	return items, nil
 }
 
 // UpsertWithTx create or update one template variable instance with transaction.
@@ -137,7 +155,7 @@ func (dao *appTemplateBindingDao) UpsertWithTx(kit *kit.Kit, tx *gen.QueryTx, at
 			Select(m.Bindings, m.TemplateSpaceIDs, m.TemplateSetIDs, m.TemplateIDs, m.TemplateRevisionIDs,
 				m.LatestTemplateIDs, m.Creator, m.Reviser, m.UpdatedAt).
 			Updates(atb); err != nil {
-			return err
+			return errf.Errorf(errf.DBOpFailed, i18n.T(kit, "create app template binding's failed, err: %v", err))
 		}
 		ad = dao.auditDao.DecoratorV2(kit, atb.Attachment.BizID).PrepareUpdate(atb, old)
 	} else if errors.Is(findErr, gorm.ErrRecordNotFound) {
@@ -148,12 +166,16 @@ func (dao *appTemplateBindingDao) UpsertWithTx(kit *kit.Kit, tx *gen.QueryTx, at
 		}
 		atb.ID = id
 		if err := tx.AppTemplateBinding.WithContext(kit.Ctx).Create(atb); err != nil {
-			return err
+			return errf.Errorf(errf.DBOpFailed, i18n.T(kit, "update app template binding's failed, err: %v", err))
 		}
 		ad = dao.auditDao.DecoratorV2(kit, atb.Attachment.BizID).PrepareCreate(atb)
 	}
 
-	return ad.Do(tx.Query)
+	if err := ad.Do(tx.Query); err != nil {
+		return errf.Errorf(errf.DBOpFailed, i18n.T(kit, " operation app template binding's failed, err: %v", err))
+	}
+
+	return nil
 }
 
 // GetAppTemplateBindingByAppID 通过业务和服务ID获取模板绑定关系
@@ -161,14 +183,19 @@ func (dao *appTemplateBindingDao) GetAppTemplateBindingByAppID(kit *kit.Kit, biz
 	*table.AppTemplateBinding, error) {
 
 	m := dao.genQ.AppTemplateBinding
-	return dao.genQ.AppTemplateBinding.WithContext(kit.Ctx).
+	item, err := dao.genQ.AppTemplateBinding.WithContext(kit.Ctx).
 		Where(m.BizID.Eq(bizID), m.AppID.Eq(appID)).Take()
+	if err != nil {
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kit, "get app template binding failed, err: %v", err))
+	}
+
+	return item, nil
 }
 
 // CreateWithTx create one app template binding instance with transaction.
 func (dao *appTemplateBindingDao) CreateWithTx(kit *kit.Kit, tx *gen.QueryTx, g *table.AppTemplateBinding) (
 	uint32, error) {
-	if err := g.ValidateCreate(); err != nil {
+	if err := g.ValidateCreate(kit); err != nil {
 		return 0, err
 	}
 	if err := dao.validateAttachmentExist(kit, g.Attachment); err != nil {
@@ -197,7 +224,7 @@ func (dao *appTemplateBindingDao) CreateWithTx(kit *kit.Kit, tx *gen.QueryTx, g 
 
 // Update one app template binding instance.
 func (dao *appTemplateBindingDao) Update(kit *kit.Kit, g *table.AppTemplateBinding) error {
-	if err := g.ValidateUpdate(); err != nil {
+	if err := g.ValidateUpdate(kit); err != nil {
 		return err
 	}
 	if err := dao.validateAttachmentExist(kit, g.Attachment); err != nil {
@@ -209,7 +236,7 @@ func (dao *appTemplateBindingDao) Update(kit *kit.Kit, g *table.AppTemplateBindi
 	q := dao.genQ.AppTemplateBinding.WithContext(kit.Ctx)
 	oldOne, err := q.Where(m.ID.Eq(g.ID), m.BizID.Eq(g.Attachment.BizID)).Take()
 	if err != nil {
-		return err
+		return errf.Errorf(errf.DBOpFailed, i18n.T(kit, "get app template binding failed, err: %v", err))
 	}
 	ad := dao.auditDao.DecoratorV2(kit, g.Attachment.BizID).PrepareUpdate(g, oldOne)
 
@@ -220,16 +247,16 @@ func (dao *appTemplateBindingDao) Update(kit *kit.Kit, g *table.AppTemplateBindi
 			Select(m.Bindings, m.TemplateSpaceIDs, m.TemplateSetIDs, m.TemplateIDs, m.TemplateRevisionIDs,
 				m.LatestTemplateIDs, m.Creator, m.Reviser, m.UpdatedAt).
 			Updates(g); err != nil {
-			return err
+			return errf.Errorf(errf.DBOpFailed, i18n.T(kit, "update app template binding's info failed, err: %v", err))
 		}
 
 		if err = ad.Do(tx); err != nil {
-			return err
+			return errf.Errorf(errf.DBOpFailed, i18n.T(kit, "update app template binding's info failed, err: %v", err))
 		}
 		return nil
 	}
 	if err = dao.genQ.Transaction(updateTx); err != nil {
-		return err
+		return errf.Errorf(errf.DBOpFailed, i18n.T(kit, "update app template binding's info failed, err: %v", err))
 	}
 
 	return nil
@@ -238,7 +265,7 @@ func (dao *appTemplateBindingDao) Update(kit *kit.Kit, g *table.AppTemplateBindi
 // UpdateWithTx Update one app template binding's info with transaction.
 func (dao *appTemplateBindingDao) UpdateWithTx(kit *kit.Kit, tx *gen.QueryTx,
 	g *table.AppTemplateBinding) error {
-	if err := g.ValidateUpdate(); err != nil {
+	if err := g.ValidateUpdate(kit); err != nil {
 		return err
 	}
 	if err := dao.validateAttachmentExist(kit, g.Attachment); err != nil {
@@ -250,11 +277,11 @@ func (dao *appTemplateBindingDao) UpdateWithTx(kit *kit.Kit, tx *gen.QueryTx,
 	q := tx.AppTemplateBinding.WithContext(kit.Ctx)
 	oldOne, err := q.Where(m.ID.Eq(g.ID), m.BizID.Eq(g.Attachment.BizID)).Take()
 	if err != nil {
-		return err
+		return errf.Errorf(errf.DBOpFailed, i18n.T(kit, "get app template binding failed, err: %v", err))
 	}
 	ad := dao.auditDao.DecoratorV2(kit, g.Attachment.BizID).PrepareUpdate(g, oldOne)
 	if err = ad.Do(tx.Query); err != nil {
-		return err
+		return errf.Errorf(errf.DBOpFailed, i18n.T(kit, "update app template binding's info failed, err: %v", err))
 	}
 
 	q = tx.AppTemplateBinding.WithContext(kit.Ctx)
@@ -262,7 +289,7 @@ func (dao *appTemplateBindingDao) UpdateWithTx(kit *kit.Kit, tx *gen.QueryTx,
 		Select(m.Bindings, m.TemplateSpaceIDs, m.TemplateSetIDs, m.TemplateIDs, m.TemplateRevisionIDs,
 			m.LatestTemplateIDs, m.Creator, m.Reviser, m.UpdatedAt).
 		Updates(g); err != nil {
-		return err
+		return errf.Errorf(errf.DBOpFailed, i18n.T(kit, "update app template binding's failed, err: %v", err))
 	}
 
 	return nil
@@ -283,13 +310,18 @@ func (dao *appTemplateBindingDao) List(kit *kit.Kit, bizID, appID uint32,
 		return result, int64(len(result)), err
 	}
 
-	return d.FindByPage(opt.Offset(), opt.LimitInt())
+	items, count, err := d.FindByPage(opt.Offset(), opt.LimitInt())
+	if err != nil {
+		return nil, 0, errf.Errorf(errf.DBOpFailed, i18n.T(kit, "list app template binding's failed, err: %v", err))
+	}
+
+	return items, count, nil
 }
 
 // Delete one app template binding instance.
 func (dao *appTemplateBindingDao) Delete(kit *kit.Kit, g *table.AppTemplateBinding) error {
 	// 参数校验
-	if err := g.ValidateDelete(); err != nil {
+	if err := g.ValidateDelete(kit); err != nil {
 		return err
 	}
 
@@ -298,7 +330,7 @@ func (dao *appTemplateBindingDao) Delete(kit *kit.Kit, g *table.AppTemplateBindi
 	q := dao.genQ.AppTemplateBinding.WithContext(kit.Ctx)
 	oldOne, err := q.Where(m.ID.Eq(g.ID), m.BizID.Eq(g.Attachment.BizID)).Take()
 	if err != nil {
-		return err
+		return errf.Errorf(errf.DBOpFailed, i18n.T(kit, "get app template binding failed, err: %v", err))
 	}
 	ad := dao.auditDao.DecoratorV2(kit, g.Attachment.BizID).PrepareDelete(oldOne)
 
@@ -306,16 +338,16 @@ func (dao *appTemplateBindingDao) Delete(kit *kit.Kit, g *table.AppTemplateBindi
 	deleteTx := func(tx *gen.Query) error {
 		q = tx.AppTemplateBinding.WithContext(kit.Ctx)
 		if _, err = q.Where(m.BizID.Eq(g.Attachment.BizID)).Delete(g); err != nil {
-			return err
+			return errf.Errorf(errf.DBOpFailed, i18n.T(kit, "delete app template binding failed, err: %v", err))
 		}
 
 		if err = ad.Do(tx); err != nil {
-			return err
+			return errf.Errorf(errf.DBOpFailed, i18n.T(kit, "delete app template binding failed, err: %v", err))
 		}
 		return nil
 	}
 	if err = dao.genQ.Transaction(deleteTx); err != nil {
-		return err
+		return errf.Errorf(errf.DBOpFailed, i18n.T(kit, "delete app template binding failed, err: %v", err))
 	}
 
 	return nil
@@ -326,7 +358,10 @@ func (dao *appTemplateBindingDao) DeleteByAppIDWithTx(kit *kit.Kit, tx *gen.Quer
 	m := tx.AppTemplateBinding
 	q := tx.AppTemplateBinding.WithContext(kit.Ctx)
 	_, err := q.Where(m.BizID.Eq(bizID), m.AppID.Eq(appID)).Delete()
-	return err
+	if err != nil {
+		return errf.Errorf(errf.DBOpFailed, i18n.T(kit, "delete app template binding failed, err: %v", err))
+	}
+	return nil
 }
 
 // validateAttachmentExist validate if attachment resource exists before operating template
@@ -336,9 +371,9 @@ func (dao *appTemplateBindingDao) validateAttachmentExist(kit *kit.Kit, am *tabl
 
 	if _, err := q.Where(m.ID.Eq(am.AppID)).Take(); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("template attached app %d is not exist", am.AppID)
+			return errors.New(i18n.T(kit, "template attached app %d is not exist", am.AppID))
 		}
-		return fmt.Errorf("get template attached app failed, err: %v", err)
+		return errors.New(i18n.T(kit, "get template attached app failed, err: %v", err))
 	}
 
 	return nil

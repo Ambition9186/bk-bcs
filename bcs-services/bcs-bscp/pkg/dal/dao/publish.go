@@ -56,7 +56,7 @@ func (dao *pubDao) Publish(kit *kit.Kit, opt *types.PublishOption) (uint32, erro
 		return 0, errors.New("publish strategy option is nil")
 	}
 
-	if err := opt.Validate(); err != nil {
+	if err := opt.Validate(kit); err != nil {
 		return 0, err
 	}
 
@@ -161,7 +161,7 @@ func (dao *pubDao) PublishWithTx(kit *kit.Kit, tx *gen.QueryTx, opt *types.Publi
 		return 0, errors.New("publish strategy option is nil")
 	}
 
-	if err := opt.Validate(); err != nil {
+	if err := opt.Validate(kit); err != nil {
 		return 0, err
 	}
 

@@ -14,7 +14,9 @@ package types
 
 import (
 	"errors"
-	"fmt"
+
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 )
 
 const (
@@ -56,7 +58,7 @@ const (
 )
 
 // Validate the sort direction is valid or not
-func (sd Order) Validate() error {
+func (sd Order) Validate(kit *kit.Kit) error {
 	if len(sd) == 0 {
 		return nil
 	}
@@ -65,7 +67,7 @@ func (sd Order) Validate() error {
 	case Ascending:
 	case Descending:
 	default:
-		return fmt.Errorf("unsupported sort direction: %s", sd)
+		return errors.New(i18n.T(kit, "unsupported sort direction: %s", sd))
 	}
 
 	return nil
@@ -120,9 +122,9 @@ func (bp *BasePage) LimitInt() int {
 
 // Validate the base page's options.
 // if the page option is not set, use the default configuration.
-func (bp BasePage) Validate(opt ...*PageOption) (err error) {
+func (bp BasePage) Validate(kit *kit.Kit, opt ...*PageOption) (err error) {
 	if len(opt) >= 2 {
-		return errors.New("at most one page options is allows")
+		return errors.New(i18n.T(kit, "at most one page options is allows"))
 	}
 
 	maxLimit := DefaultMaxPageLimit
@@ -138,11 +140,11 @@ func (bp BasePage) Validate(opt ...*PageOption) (err error) {
 
 		if one.DisabledSort {
 			if len(bp.Sort) > 0 {
-				return errors.New("page.sort is not allowed")
+				return errors.New(i18n.T(kit, "page.sort is not allowed"))
 			}
 
 			if len(bp.Order) > 0 {
-				return errors.New("invalid page.order, page.order is not allowed")
+				return errors.New(i18n.T(kit, "invalid page.order, page.order is not allowed"))
 			}
 		}
 	}
@@ -154,17 +156,17 @@ func (bp BasePage) Validate(opt ...*PageOption) (err error) {
 		// 1. limit should >=1
 		// 2. validate whether the limit is larger than the max limit value
 		if bp.Limit == 0 {
-			return errors.New("page.limit value should >= 1")
+			return i18n.TranslateError(kit, i18n.ErrInvalidLimit)
 		}
 
 		if bp.Limit > maxLimit {
-			return fmt.Errorf("invalid page.limit max value: %d", maxLimit)
+			return errors.New(i18n.T(kit, "invalid page.limit max value: %d", maxLimit))
 		}
 	}
 
 	// if direction is set, then validate it.
 	if len(bp.Order) != 0 {
-		if err := bp.Order.Validate(); err != nil {
+		if err := bp.Order.Validate(kit); err != nil {
 			return err
 		}
 	}

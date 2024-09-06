@@ -13,8 +13,12 @@
 package types
 
 import (
+	"errors"
+
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/dal/table"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/runtime/filter"
 )
 
@@ -26,13 +30,13 @@ type ListGroupsOption struct {
 }
 
 // Validate the list group options
-func (opt *ListGroupsOption) Validate(po *PageOption) error {
+func (opt *ListGroupsOption) Validate(kit *kit.Kit, po *PageOption) error {
 	if opt.BizID <= 0 {
-		return errf.New(errf.InvalidParameter, "invalid biz id, should >= 1")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if opt.Filter == nil {
-		return errf.New(errf.InvalidParameter, "filter is nil")
+		return errf.ErrInvalidArgF(kit)
 	}
 
 	exprOpt := &filter.ExprOption{
@@ -40,14 +44,14 @@ func (opt *ListGroupsOption) Validate(po *PageOption) error {
 		RuleFields: table.GroupColumns.WithoutColumn("biz_id", "app_id"),
 	}
 	if err := opt.Filter.Validate(exprOpt); err != nil {
-		return err
+		return errors.New(i18n.T(kit, "filter provides expression filter failed, err: %v", err))
 	}
 
 	if opt.Page == nil {
 		return errf.New(errf.InvalidParameter, "page is null")
 	}
 
-	if err := opt.Page.Validate(po); err != nil {
+	if err := opt.Page.Validate(kit, po); err != nil {
 		return err
 	}
 
@@ -70,18 +74,19 @@ type ListGroupReleasedAppsOption struct {
 }
 
 // Validate the list group's published apps options
-func (opt *ListGroupReleasedAppsOption) Validate() error {
+func (opt *ListGroupReleasedAppsOption) Validate(kit *kit.Kit) error {
 	if opt.BizID == 0 {
-		return errf.New(errf.InvalidParameter, "invalid biz id, should >= 1")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if opt.GroupID == 0 {
-		return errf.New(errf.InvalidParameter, "invalid group id, should >= 1")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if opt.Limit == 0 {
-		return errf.New(errf.InvalidParameter, "invalid limit, should >= 1")
+		return i18n.TranslateError(kit, i18n.ErrInvalidLimit)
 	}
+
 	return nil
 }
 

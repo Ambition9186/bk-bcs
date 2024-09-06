@@ -16,9 +16,10 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
-	"fmt"
 
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/validator"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/runtime/selector"
 )
@@ -40,12 +41,12 @@ func (s GrayPublishMode) String() string {
 }
 
 // Validate gray publish mode type.
-func (s GrayPublishMode) Validate() error {
+func (s GrayPublishMode) Validate(kit *kit.Kit) error {
 	switch s {
 	case PublishByGroups:
 	case PublishByLabels:
 	default:
-		return fmt.Errorf("unsupported publish mode: %s", s)
+		return errors.New(i18n.T(kit, "unsupported publish mode: %s", s))
 	}
 
 	return nil
@@ -88,11 +89,11 @@ func (s *Strategy) ResType() string {
 func (s *Strategy) ValidateCreate(kit *kit.Kit) error {
 
 	if s.ID > 0 {
-		return errors.New("id should not be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if s.Spec == nil {
-		return errors.New("spec not set")
+		return errf.ErrNoSpecF(kit)
 	}
 
 	if err := s.Spec.ValidateCreate(kit); err != nil {
@@ -100,26 +101,26 @@ func (s *Strategy) ValidateCreate(kit *kit.Kit) error {
 	}
 
 	if s.State == nil {
-		return errors.New("state not set")
+		return errors.New(i18n.T(kit, "state not set"))
 	}
 
-	if err := s.State.Validate(); err != nil {
+	if err := s.State.Validate(kit); err != nil {
 		return err
 	}
 
 	if s.Attachment == nil {
-		return errors.New("attachment not set")
+		return errf.ErrNoAttachmentF(kit)
 	}
 
-	if err := s.Attachment.Validate(); err != nil {
+	if err := s.Attachment.Validate(kit); err != nil {
 		return err
 	}
 
 	if s.Revision == nil {
-		return errors.New("revision not set")
+		return errf.ErrNoRevisionF(kit)
 	}
 
-	if err := s.Revision.ValidateCreate(); err != nil {
+	if err := s.Revision.ValidateCreate(kit); err != nil {
 		return err
 	}
 
@@ -130,7 +131,7 @@ func (s *Strategy) ValidateCreate(kit *kit.Kit) error {
 func (s *Strategy) ValidateUpdate(kit *kit.Kit, asDefault bool, namespaced bool) error {
 
 	if s.ID <= 0 {
-		return errors.New("id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	changed := false
@@ -143,32 +144,32 @@ func (s *Strategy) ValidateUpdate(kit *kit.Kit, asDefault bool, namespaced bool)
 
 	if s.State != nil {
 		changed = true
-		if err := s.State.Validate(); err != nil {
+		if err := s.State.Validate(kit); err != nil {
 			return err
 		}
 	}
 
 	if s.Attachment == nil {
-		return errors.New("attachment should be set")
+		return errf.ErrNoAttachmentF(kit)
 	}
 
 	if s.Attachment.BizID <= 0 {
-		return errors.New("biz id should be set")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if s.Attachment.AppID <= 0 {
-		return errors.New("app id should be set")
+		return errf.ErrInvalidAppIDF(kit)
 	}
 
 	if !changed {
-		return errors.New("nothing is found to be change")
+		return errors.New(i18n.T(kit, "nothing is found to be change"))
 	}
 
 	if s.Revision == nil {
-		return errors.New("revision not set")
+		return errf.ErrNoRevisionF(kit)
 	}
 
-	if err := s.Revision.ValidateUpdate(); err != nil {
+	if err := s.Revision.ValidateUpdate(kit); err != nil {
 		return err
 	}
 
@@ -176,13 +177,13 @@ func (s *Strategy) ValidateUpdate(kit *kit.Kit, asDefault bool, namespaced bool)
 }
 
 // ValidateDelete validate the strategy's info when delete it.
-func (s *Strategy) ValidateDelete() error {
+func (s *Strategy) ValidateDelete(kit *kit.Kit) error {
 	if s.ID <= 0 {
-		return errors.New("strategy id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if s.Attachment.BizID <= 0 {
-		return errors.New("biz id should be set")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	return nil
@@ -233,12 +234,12 @@ func (s StrategySpec) ValidateCreate(kit *kit.Kit) error {
 	}
 
 	if s.ReleaseID <= 0 {
-		return errors.New("invalid strategy release id")
+		return errors.New(i18n.T(kit, "invalid strategy release id"))
 	}
 
 	if !s.AsDefault {
 		if len(s.Scope.Groups) == 0 {
-			return errors.New("strategy's scope can not be empty at gray release mode")
+			return errors.New(i18n.T(kit, "strategy's scope can not be empty at gray release mode"))
 		}
 		for _, group := range s.Scope.Groups {
 			if err := group.ValidateCreate(kit); err != nil {
@@ -264,11 +265,11 @@ func (s StrategySpec) ValidateUpdate(kit *kit.Kit, asDefault bool, namespaced bo
 	}
 
 	if s.ReleaseID <= 0 {
-		return errors.New("release id should be set")
+		return errors.New(i18n.T(kit, "release id should be set"))
 	}
 
 	if len(s.Namespace) != 0 {
-		return errors.New("namespace can not be updated")
+		return errors.New(i18n.T(kit, "namespace can not be updated"))
 	}
 
 	if err := validator.ValidateMemo(kit, s.Memo, false); err != nil {
@@ -295,14 +296,14 @@ const (
 type PublishState string
 
 // Validate whether publish state is valid or not.
-func (p PublishState) Validate() error {
+func (p PublishState) Validate(kit *kit.Kit) error {
 
 	switch p {
 	case Unpublished:
 	case Publishing:
 	case Published:
 	default:
-		return fmt.Errorf("unsupported publish state: %s", p)
+		return errors.New(i18n.T(kit, "unsupported publish state: %s", p))
 	}
 
 	return nil
@@ -314,8 +315,8 @@ type StrategyState struct {
 }
 
 // Validate whether strategy state is valid or not.
-func (s StrategyState) Validate() error {
-	if err := s.PubState.Validate(); err != nil {
+func (s StrategyState) Validate(kit *kit.Kit) error {
+	if err := s.PubState.Validate(kit); err != nil {
 		return err
 	}
 
@@ -335,17 +336,17 @@ func (s StrategyAttachment) IsEmpty() bool {
 }
 
 // Validate whether strategy attachment is valid or not.
-func (s StrategyAttachment) Validate() error {
+func (s StrategyAttachment) Validate(kit *kit.Kit) error {
 	if s.BizID <= 0 {
-		return errors.New("invalid attachment biz id")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	if s.AppID <= 0 {
-		return errors.New("invalid attachment app id")
+		return errf.ErrInvalidAppIDF(kit)
 	}
 
 	if s.StrategySetID <= 0 {
-		return errors.New("invalid attachment strategy set id")
+		return errors.New(i18n.T(kit, "invalid attachment strategy set id"))
 	}
 
 	return nil
@@ -363,37 +364,37 @@ type Scope struct {
 
 // Scan is used to decode raw message which is read from db into a structured
 // ScopeSelector instance.
-func (s *Scope) Scan(raw interface{}) error {
+func (s *Scope) Scan(kit *kit.Kit, raw interface{}) error {
 	if s == nil {
-		return errors.New("scope is not initialized")
+		return errf.ErrInvalidArgF(kit)
 	}
 
 	if raw == nil {
-		return errors.New("raw is nil, can not be decoded")
+		return errf.ErrInvalidArgF(kit)
 	}
 
 	switch v := raw.(type) {
 	case []byte:
 		if err := json.Unmarshal(v, &s); err != nil {
-			return fmt.Errorf("decode into scope failed, err: %v", err)
+			return errors.New(i18n.T(kit, "decode into scope failed, err: %v", err))
 
 		}
 		return nil
 	case string:
 		if err := json.Unmarshal([]byte(v), &s); err != nil {
-			return fmt.Errorf("decode into scope failed, err: %v", err)
+			return errors.New(i18n.T(kit, "decode into scope failed, err: %v", err))
 		}
 		return nil
 	default:
-		return fmt.Errorf("unsupported scope raw type: %T", v)
+		return errors.New(i18n.T(kit, "unsupported scope raw type: %T", v))
 	}
 }
 
 // Value encode the scope selector to a json raw, so that it can be stored to db with
 // json raw.
-func (s *Scope) Value() (driver.Value, error) {
+func (s *Scope) Value(kit *kit.Kit) (driver.Value, error) {
 	if s == nil {
-		return nil, errors.New("scope selector is not initialized, can not be encoded")
+		return nil, errf.ErrInvalidArgF(kit)
 	}
 
 	return json.Marshal(s)
@@ -405,10 +406,10 @@ func (s Scope) IsEmpty() bool {
 }
 
 // ValidateCreate validate strategy's selector when it is created.
-func (s Scope) ValidateCreate(asDefault bool, namespaced bool) error {
+func (s Scope) ValidateCreate(kit *kit.Kit, asDefault bool, namespaced bool) error {
 
 	if s.IsEmpty() {
-		return errors.New("strategy's groups is not set")
+		return errors.New(i18n.T(kit, "strategy's groups is not set"))
 	}
 
 	return nil
@@ -443,7 +444,7 @@ func (s SubStrategy) IsEmpty() bool {
 // ValidateCreate validate sub strategy when it is created.
 func (s SubStrategy) ValidateCreate(kit *kit.Kit) error {
 	if s.Spec == nil {
-		return errors.New("sub strategy's spec is empty")
+		return errf.ErrNoSpecF(kit)
 	}
 
 	if err := s.Spec.Validate(kit); err != nil {
@@ -456,7 +457,7 @@ func (s SubStrategy) ValidateCreate(kit *kit.Kit) error {
 // ValidateUpdate validate sub strategy when it is updated.
 func (s SubStrategy) ValidateUpdate(kit *kit.Kit) error {
 	if s.Spec == nil {
-		return errors.New("sub strategy's spec is empty")
+		return errf.ErrNoSpecF(kit)
 	}
 
 	if err := s.Spec.Validate(kit); err != nil {
@@ -505,14 +506,14 @@ func (s SubStrategySpec) Validate(kit *kit.Kit) error {
 	}
 
 	if s.ReleaseID <= 0 {
-		return errors.New("invalid sub strategy's release id")
+		return errors.New(i18n.T(kit, "invalid sub strategy's release id"))
 	}
 
 	if s.Scope == nil {
-		return errors.New("sub strategy's scope is empty")
+		return errors.New(i18n.T(kit, "sub strategy's scope is empty"))
 	}
 
-	if err := s.Scope.Validate(); err != nil {
+	if err := s.Scope.Validate(kit); err != nil {
 		return err
 	}
 
@@ -546,23 +547,23 @@ func (s SubScopeSelector) IsEmpty() bool {
 var ErrSelectorByteSizeIsOverMaxLimit = errors.New("the selector's byte size is over the max limit error")
 
 // Validate the sub scope selector
-func (s SubScopeSelector) Validate() error {
+func (s SubScopeSelector) Validate(kit *kit.Kit) error {
 	if s.Selector == nil {
-		return errors.New("sub scope selector can not be empty")
+		return errors.New(i18n.T(kit, "sub scope selector can not be empty"))
 	}
 
 	if s.Selector.IsEmpty() {
-		return errors.New("sub scope selector is empty, it is required")
+		return errors.New(i18n.T(kit, "sub scope selector is empty, it is required"))
 	}
 
 	if s.Selector.MatchAll {
-		return errors.New("sub strategy's scope selector can not use match all, " +
-			"should be part of all the instances")
+		return errors.New(i18n.T(kit, "sub strategy's scope selector can not use match all, "+
+			"should be part of all the instances"))
 	}
 
 	raw, err := json.Marshal(s.Selector)
 	if err != nil {
-		return fmt.Errorf("marshal sub strategy selector failed, err: %v", err)
+		return errors.New(i18n.T(kit, "marshal sub strategy selector failed, err: %v", err))
 	}
 
 	if len(raw) > MaxScopeSelectorByteSize {

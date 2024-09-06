@@ -13,10 +13,8 @@
 package table
 
 import (
-	"errors"
-	"fmt"
-
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/enumor"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 )
 
@@ -111,22 +109,22 @@ func (rs RciList) ResType() string {
 // Validate the released config item information.
 func (r *ReleasedConfigItem) Validate(kit *kit.Kit) error {
 	if r.ID != 0 {
-		return errors.New("id should not set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if r.ReleaseID <= 0 {
-		return errors.New("invalid release id")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if r.CommitSpec == nil {
-		return errors.New("commit spec is empty")
+		return errf.ErrInvalidArgF(kit)
 	}
 
 	// when config item id = 0 ,it is a rendered template config item
 	// when config item id > 0, it is a normal config item (not rendered from template)
 	if r.ConfigItemID > 0 {
 		if r.CommitID <= 0 {
-			return errors.New("invalid commit id")
+			return errf.ErrInvalidIDF(kit)
 		}
 
 		if err := r.CommitSpec.Validate(kit); err != nil {
@@ -140,26 +138,26 @@ func (r *ReleasedConfigItem) Validate(kit *kit.Kit) error {
 	}
 
 	if r.ConfigItemSpec == nil {
-		return errors.New("config item spec is empty")
+		return errf.ErrNoSpecF(kit)
 	}
 
 	if err := r.ConfigItemSpec.ValidateCreate(kit); err != nil {
-		return fmt.Errorf("invalid config item spec, err: %v", err)
+		return err
 	}
 
 	if r.Attachment == nil {
-		return errors.New("attachment is empty")
+		return errf.ErrNoAttachmentF(kit)
 	}
 
-	if err := r.Attachment.Validate(); err != nil {
+	if err := r.Attachment.Validate(kit); err != nil {
 		return err
 	}
 
 	if r.Revision == nil {
-		return errors.New("revision is empty")
+		return errf.ErrNoRevisionF(kit)
 	}
 
-	if err := r.Revision.ValidateCreate(); err != nil {
+	if err := r.Revision.ValidateCreate(kit); err != nil {
 		return err
 	}
 

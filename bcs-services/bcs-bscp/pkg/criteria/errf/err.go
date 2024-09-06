@@ -66,4 +66,34 @@ var (
 	ErrNoRevisionF = func(kit *kit.Kit) *ErrorF {
 		return Errorf(InvalidArgument, i18n.T(kit, "revision not set"))
 	}
+
+	// ErrInvalidBizIDF invalid biz id
+	ErrInvalidBizIDF = func(kit *kit.Kit) *ErrorF {
+		return Errorf(InvalidArgument, i18n.T(kit, "invalid biz id"))
+	}
+	// ErrInvalidAppIDF invalid app id
+	ErrInvalidAppIDF = func(kit *kit.Kit) *ErrorF {
+		return Errorf(InvalidArgument, i18n.T(kit, "invalid app id"))
+	}
+	// ErrInvalidIDF invalid id
+	ErrInvalidIDF = func(kit *kit.Kit) *ErrorF {
+		return Errorf(InvalidArgument, i18n.T(kit, "invalid id"))
+	}
+	// ErrNoCreatorF creator not set
+	ErrNoCreatorF = func(kit *kit.Kit) *ErrorF {
+		return Errorf(InvalidArgument, i18n.T(kit, "creator not set"))
+	}
+	// ErrNoLimitF limit not set
+	ErrNoLimitF = func(kit *kit.Kit) *ErrorF {
+		return Errorf(InvalidArgument, i18n.T(kit, "limit not set"))
+	}
+	// ErrNoPageF page not set
+	ErrNoPageF = func(kit *kit.Kit) *ErrorF {
+		return Errorf(InvalidArgument, i18n.T(kit, "page not set"))
+	}
+
+	// ErrInvalidSelectorF invalid selector
+	ErrInvalidSelectorF = func(kit *kit.Kit) *ErrorF {
+		return Errorf(InvalidArgument, i18n.T(kit, "invalid selector"))
+	}
 )

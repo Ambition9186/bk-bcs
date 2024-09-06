@@ -193,7 +193,7 @@ func (s *Service) ListTemplates(ctx context.Context, req *pbds.ListTemplatesReq)
 	kt := kit.FromGrpcContext(ctx)
 
 	opt := &types.BasePage{Start: req.Start, Limit: uint(req.Limit), All: req.All}
-	if err := opt.Validate(types.DefaultPageOption); err != nil {
+	if err := opt.Validate(kt, types.DefaultPageOption); err != nil {
 		return nil, err
 	}
 
@@ -665,7 +665,7 @@ func (s *Service) ListTemplatesNotBound(ctx context.Context, req *pbds.ListTempl
 
 	// validate the page params
 	opt := &types.BasePage{Start: req.Start, Limit: uint(req.Limit), All: req.All}
-	if err := opt.Validate(types.DefaultPageOption); err != nil {
+	if err := opt.Validate(kt, types.DefaultPageOption); err != nil {
 		return nil, err
 	}
 
@@ -748,7 +748,7 @@ func (s *Service) ListTmplsOfTmplSet(ctx context.Context, req *pbds.ListTmplsOfT
 
 	// validate the page params
 	opt := &types.BasePage{Start: req.Start, Limit: uint(req.Limit), All: req.All}
-	if err := opt.Validate(types.DefaultPageOption); err != nil {
+	if err := opt.Validate(kt, types.DefaultPageOption); err != nil {
 		return nil, err
 	}
 

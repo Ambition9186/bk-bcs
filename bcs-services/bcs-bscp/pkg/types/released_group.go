@@ -15,6 +15,7 @@ package types
 import (
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/dal/table"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/runtime/filter"
 )
 
@@ -25,9 +26,9 @@ type CountGroupsReleasedAppsOption struct {
 }
 
 // Validate the count group's published apps options
-func (opt *CountGroupsReleasedAppsOption) Validate(po *PageOption) error {
+func (opt *CountGroupsReleasedAppsOption) Validate(kit *kit.Kit, po *PageOption) error {
 	if opt.BizID <= 0 {
-		return errf.New(errf.InvalidParameter, "invalid biz id, should >= 1")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 	return nil
 }

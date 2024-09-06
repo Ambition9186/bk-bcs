@@ -19,7 +19,9 @@ import (
 	"sync"
 
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/constant"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/dal/table"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/logs"
 	pbci "github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/protocol/core/config-item"
@@ -53,7 +55,7 @@ func (s *Service) getAppTmplRevisions(kt *kit.Kit) ([]*table.TemplateRevision, e
 	details, _, err := s.dao.AppTemplateBinding().List(kt, kt.BizID, kt.AppID, opt)
 	if err != nil {
 		logs.Errorf("get app template revisions failed, err: %v, rid: %s", err, kt.Rid)
-		return nil, err
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kt, "get app template revisions failed, err: %v", err))
 	}
 	// so far, no any template config item exists for the app
 	if len(details) == 0 {
@@ -65,7 +67,7 @@ func (s *Service) getAppTmplRevisions(kt *kit.Kit) ([]*table.TemplateRevision, e
 		ListByIDs(kt, details[0].Spec.TemplateRevisionIDs)
 	if err != nil {
 		logs.Errorf("get app template revisions failed, err: %v, rid: %s", err, kt.Rid)
-		return nil, err
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kt, "get app template revisions failed, err: %v", err))
 	}
 
 	return tmplRevisions, nil

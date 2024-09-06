@@ -13,9 +13,10 @@
 package table
 
 import (
-	"errors"
 	"time"
 
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/runtime/credential"
 )
 
@@ -49,29 +50,29 @@ func (c *CredentialScope) ResType() string {
 }
 
 // ValidateCreate validate Credential is valid or not when create it.
-func (c *CredentialScope) ValidateCreate() error {
+func (c *CredentialScope) ValidateCreate(kit *kit.Kit) error {
 
 	if c.ID > 0 {
-		return errors.New("id should not be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if c.Spec == nil {
-		return errors.New("spec not set")
+		return errf.ErrNoSpecF(kit)
 	}
 
-	if err := c.Spec.CredentialScope.Validate(); err != nil {
+	if err := c.Spec.CredentialScope.Validate(kit); err != nil {
 		return err
 	}
 
 	if c.Attachment == nil {
-		return errors.New("attachment not set")
+		return errf.ErrNoAttachmentF(kit)
 	}
 
 	if c.Revision == nil {
-		return errors.New("revision not set")
+		return errf.ErrNoRevisionF(kit)
 	}
 
-	if err := c.Revision.ValidateCreate(); err != nil {
+	if err := c.Revision.ValidateCreate(kit); err != nil {
 		return err
 	}
 
@@ -91,39 +92,39 @@ type CredentialScopeAttachment struct {
 }
 
 // ValidateDelete credential scope validate
-func (c *CredentialScope) ValidateDelete() error {
+func (c *CredentialScope) ValidateDelete(kit *kit.Kit) error {
 	if c.ID <= 0 {
-		return errors.New("credential scope id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if c.Attachment.BizID <= 0 {
-		return errors.New("biz id should be set")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	return nil
 }
 
 // ValidateUpdate validate Credential is valid or not when update it.
-func (c *CredentialScope) ValidateUpdate() error {
+func (c *CredentialScope) ValidateUpdate(kit *kit.Kit) error {
 
 	if c.ID <= 0 {
-		return errors.New("credential scope id should be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if c.Spec == nil {
-		return errors.New("spec not set")
+		return errf.ErrNoSpecF(kit)
 	}
 
-	if err := c.Spec.CredentialScope.Validate(); err != nil {
+	if err := c.Spec.CredentialScope.Validate(kit); err != nil {
 		return err
 	}
 
 	if c.Attachment == nil {
-		return errors.New("attachment not set")
+		return errf.ErrNoAttachmentF(kit)
 	}
 
 	if c.Revision == nil {
-		return errors.New("revision not set")
+		return errf.ErrNoRevisionF(kit)
 	}
 
 	return nil

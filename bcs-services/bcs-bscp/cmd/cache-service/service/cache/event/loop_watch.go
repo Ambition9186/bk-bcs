@@ -181,7 +181,7 @@ func (lw *loopWatch) doOneStep(kt *kit.Kit, start uint32, limit uint, lagSeconds
 	retry bool) {
 	// order these events with event id.
 	opt := &types.BasePage{Start: 0, Limit: limit, Sort: "id", Order: types.Ascending}
-	if err := opt.Validate(types.DefaultPageOption); err != nil {
+	if err := opt.Validate(kt, types.DefaultPageOption); err != nil {
 		logs.Errorf("validate page option failed, err: %v, rid: %s", err, kt.Rid)
 		return start, false, true
 	}

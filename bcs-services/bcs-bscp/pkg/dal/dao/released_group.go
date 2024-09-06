@@ -16,6 +16,7 @@ import (
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/dal/gen"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/dal/table"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/types"
 )
@@ -51,49 +52,65 @@ type releasedGroupDao struct {
 // ListAll list all released groups in biz
 func (dao *releasedGroupDao) ListAll(kit *kit.Kit, bizID uint32) ([]*table.ReleasedGroup, error) {
 	if bizID == 0 {
-		return nil, errf.New(errf.InvalidParameter, "bizID is 0")
+		return nil, errf.ErrInvalidBizIDF(kit)
 	}
 
 	m := dao.genQ.ReleasedGroup
-	return m.WithContext(kit.Ctx).Where(m.BizID.Eq(bizID)).Find()
+	items, err := m.WithContext(kit.Ctx).Where(m.BizID.Eq(bizID)).Find()
+	if err != nil {
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kit, "list released groups failed, err: %v", err))
+	}
+	return items, nil
 }
 
 // ListByGroupID list released groups by groupID
 func (dao *releasedGroupDao) ListAllByGroupID(kit *kit.Kit, groupID, bizID uint32) ([]*table.ReleasedGroup, error) {
 	if bizID == 0 {
-		return nil, errf.New(errf.InvalidParameter, "bizID is 0")
+		return nil, errf.ErrInvalidBizIDF(kit)
 	}
 
 	m := dao.genQ.ReleasedGroup
-	return m.WithContext(kit.Ctx).Where(m.GroupID.Eq(groupID), m.BizID.Eq(bizID)).Find()
+	items, err := m.WithContext(kit.Ctx).Where(m.GroupID.Eq(groupID), m.BizID.Eq(bizID)).Find()
+	if err != nil {
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kit, "list released groups failed, err: %v", err))
+	}
+	return items, nil
 }
 
 // ListByGroupID list released groups by appID
 func (dao *releasedGroupDao) ListAllByAppID(kit *kit.Kit, appID, bizID uint32) ([]*table.ReleasedGroup, error) {
 	if bizID == 0 {
-		return nil, errf.New(errf.InvalidParameter, "bizID is 0")
+		return nil, errf.ErrInvalidBizIDF(kit)
 	}
 
 	if appID == 0 {
-		return nil, errf.New(errf.InvalidParameter, "appID is 0")
+		return nil, errf.ErrInvalidAppIDF(kit)
 	}
 
 	m := dao.genQ.ReleasedGroup
-	return m.WithContext(kit.Ctx).Where(m.AppID.Eq(appID), m.BizID.Eq(bizID)).Find()
+	items, err := m.WithContext(kit.Ctx).Where(m.AppID.Eq(appID), m.BizID.Eq(bizID)).Find()
+	if err != nil {
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kit, "list released group failed, err: %v", err))
+	}
+	return items, nil
 }
 
 // ListAllByReleaseID list all released groups by releaseID
 func (dao *releasedGroupDao) ListAllByReleaseID(kit *kit.Kit, releaseID, bizID uint32) ([]*table.ReleasedGroup, error) {
 	if bizID == 0 {
-		return nil, errf.New(errf.InvalidParameter, "bizID is 0")
+		return nil, errf.ErrInvalidBizIDF(kit)
 	}
 
 	if releaseID == 0 {
-		return nil, errf.New(errf.InvalidParameter, "releaseID is 0")
+		return nil, errf.ErrInvalidIDF(kit)
 	}
 
 	m := dao.genQ.ReleasedGroup
-	return m.WithContext(kit.Ctx).Where(m.ReleaseID.Eq(releaseID), m.BizID.Eq(bizID)).Find()
+	items, err := m.WithContext(kit.Ctx).Where(m.ReleaseID.Eq(releaseID), m.BizID.Eq(bizID)).Find()
+	if err != nil {
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kit, "list released groups failed, err: %v", err))
+	}
+	return items, nil
 }
 
 // CountGroupsReleasedApps counts each group's published apps.
@@ -101,10 +118,10 @@ func (dao *releasedGroupDao) CountGroupsReleasedApps(kit *kit.Kit, opts *types.C
 	[]*types.GroupPublishedAppsCount, error) {
 
 	if opts == nil {
-		return nil, errf.New(errf.InvalidParameter, "count groups released apps option is nil")
+		return nil, errf.New(errf.InvalidParameter, i18n.T(kit, "count groups released apps option is nil"))
 	}
 
-	if err := opts.Validate(nil); err != nil {
+	if err := opts.Validate(kit, nil); err != nil {
 		return nil, err
 	}
 
@@ -116,7 +133,7 @@ func (dao *releasedGroupDao) CountGroupsReleasedApps(kit *kit.Kit, opts *types.C
 		Where(m.BizID.Eq(opts.BizID), m.GroupID.In(opts.Groups...)).
 		Group(m.GroupID).
 		Scan(&counts); err != nil {
-		return nil, err
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kit, "counts each group's published apps failed, err: %v", err))
 	}
 	return counts, nil
 }
@@ -125,11 +142,11 @@ func (dao *releasedGroupDao) CountGroupsReleasedApps(kit *kit.Kit, opts *types.C
 func (dao *releasedGroupDao) UpdateEditedStatusWithTx(kit *kit.Kit,
 	tx *gen.QueryTx, edited bool, groupID, bizID uint32) error {
 	if bizID == 0 {
-		return errf.New(errf.InvalidParameter, "bizID is 0")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 	if groupID == 0 {
 		// group id is 0, means it is a default group,can not be edited
-		return errf.New(errf.InvalidParameter, "groupID is 0")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	m := tx.ReleasedGroup
@@ -137,7 +154,7 @@ func (dao *releasedGroupDao) UpdateEditedStatusWithTx(kit *kit.Kit,
 	if _, err := m.WithContext(kit.Ctx).
 		Where(m.GroupID.Eq(groupID), m.BizID.Eq(bizID)).
 		Update(m.Edited, edited); err != nil {
-		return err
+		return errf.Errorf(errf.DBOpFailed, i18n.T(kit, "update edited status failed, err: %v", err))
 	}
 	return nil
 }
@@ -145,13 +162,16 @@ func (dao *releasedGroupDao) UpdateEditedStatusWithTx(kit *kit.Kit,
 // BatchDeleteByAppIDWithTx batch delete by app id with transaction.
 func (dao *releasedGroupDao) BatchDeleteByAppIDWithTx(kit *kit.Kit, tx *gen.QueryTx, appID, bizID uint32) error {
 	if bizID == 0 {
-		return errf.New(errf.InvalidParameter, "bizID is 0")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 	if appID == 0 {
-		return errf.New(errf.InvalidParameter, "appID is 0")
+		return errf.ErrInvalidAppIDF(kit)
 	}
 
 	m := tx.ReleasedGroup
 	_, err := m.WithContext(kit.Ctx).Where(m.AppID.Eq(appID), m.BizID.Eq(bizID)).Delete()
+	if err != nil {
+		return errf.Errorf(errf.DBOpFailed, i18n.T(kit, "batch delete release groups failed, err: %v", err))
+	}
 	return err
 }

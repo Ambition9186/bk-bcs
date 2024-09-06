@@ -20,6 +20,9 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/enumor"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 )
 
 // Columns defines the column's details prepared for
@@ -295,10 +298,10 @@ func (r Revision) IsEmpty() bool {
 
 // ValidateCreate validate revision when created
 // no need to validate time here, because the time is injected by gorm automatically
-func (r Revision) ValidateCreate() error {
+func (r Revision) ValidateCreate(kit *kit.Kit) error {
 
 	if len(r.Creator) == 0 {
-		return errors.New("creator can not be empty")
+		return i18n.TranslateError(kit, i18n.ErrCreatorNotSet)
 	}
 
 	return nil
@@ -306,9 +309,9 @@ func (r Revision) ValidateCreate() error {
 
 // ValidateUpdate validate revision when updated
 // no need to validate time here, because the time is injected by gorm automatically
-func (r Revision) ValidateUpdate() error {
+func (r Revision) ValidateUpdate(kit *kit.Kit) error {
 	if len(r.Reviser) == 0 {
-		return errors.New("reviser can not be empty")
+		return errf.ErrNoRevisionF(kit)
 	}
 
 	return nil
@@ -330,10 +333,10 @@ type CreatedRevision struct {
 
 // Validate revision when created
 // no need to validate time here, because the time is injected by gorm automatically
-func (r CreatedRevision) Validate() error {
+func (r CreatedRevision) Validate(kit *kit.Kit) error {
 
 	if len(r.Creator) == 0 {
-		return errors.New("creator can not be empty")
+		return errors.New(i18n.T(kit, "creator can not be empty"))
 	}
 
 	return nil

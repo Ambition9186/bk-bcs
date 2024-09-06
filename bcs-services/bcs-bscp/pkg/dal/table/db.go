@@ -14,10 +14,11 @@ package table
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/validator"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 )
 
@@ -40,18 +41,18 @@ func (s ShardingDB) TableName() Name {
 // ValidateCreate sharding db details
 func (s ShardingDB) ValidateCreate(kit *kit.Kit) error {
 	if s.ID > 0 {
-		return errors.New("id can not set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if s.Spec == nil {
-		return errors.New("spec not set")
+		return errf.ErrNoSpecF(kit)
 	}
 
 	if err := s.Spec.Validate(kit); err != nil {
 		return err
 	}
 
-	if err := s.Revision.ValidateCreate(); err != nil {
+	if err := s.Revision.ValidateCreate(kit); err != nil {
 		return err
 	}
 
@@ -62,18 +63,18 @@ func (s ShardingDB) ValidateCreate(kit *kit.Kit) error {
 func (s ShardingDB) ValidateUpdate(kit *kit.Kit) error {
 
 	if s.ID <= 0 {
-		return errors.New("id not set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if s.Spec == nil {
-		return errors.New("spec not set")
+		return errf.ErrNoSpecF(kit)
 	}
 
 	if err := s.Spec.Validate(kit); err != nil {
 		return err
 	}
 
-	if err := s.Revision.ValidateUpdate(); err != nil {
+	if err := s.Revision.ValidateUpdate(kit); err != nil {
 		return err
 	}
 
@@ -102,17 +103,17 @@ const (
 type ShardingType string
 
 // Validate sharding type.
-func (s ShardingType) Validate() error {
+func (s ShardingType) Validate(kit *kit.Kit) error {
 	switch s {
 	case DefaultSharding:
 	case ResourceSharding:
-		return fmt.Errorf("%s sharding not support for now", s)
+		return errors.New(i18n.T(kit, "%s sharding not support for now", s))
 	case AuditSharding:
-		return fmt.Errorf("%s sharding not support for now", s)
+		return errors.New(i18n.T(kit, "%s sharding not support for now", s))
 	case EventSharding:
-		return fmt.Errorf("%s sharding not support for now", s)
+		return errors.New(i18n.T(kit, "%s sharding not support for now", s))
 	default:
-		return fmt.Errorf("unsupported sharding type: %s", s)
+		errors.New(i18n.T(kit, "unsupported sharding type: %s", s))
 	}
 
 	return nil
@@ -136,24 +137,24 @@ type ShardingDBSpec struct {
 // Validate sharding db instance's specifics
 func (s ShardingDBSpec) Validate(kit *kit.Kit) error {
 
-	if err := s.Type.Validate(); err != nil {
+	if err := s.Type.Validate(kit); err != nil {
 		return err
 	}
 
 	if len(s.Host) == 0 {
-		return errors.New("host not set")
+		return errors.New(i18n.T(kit, "host not set"))
 	}
 
 	if s.Port <= 0 {
-		return errors.New("port not set")
+		return errors.New(i18n.T(kit, "port not set"))
 	}
 
 	if len(s.User) == 0 {
-		return errors.New("user not set")
+		return errors.New(i18n.T(kit, "user not set"))
 	}
 
 	if len(s.Password) == 0 {
-		return errors.New("passport not set")
+		return errors.New(i18n.T(kit, "passport not set"))
 	}
 
 	if err := validator.ValidateMemo(kit, s.Memo, false); err != nil {
@@ -179,11 +180,11 @@ func (s ShardingBiz) TableName() Name {
 func (s ShardingBiz) ValidateCreate(kit *kit.Kit) error {
 
 	if s.ID > 0 {
-		return errors.New("id should not be set")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if s.Spec == nil {
-		return errors.New("invalid spec")
+		return errf.ErrNoSpecF(kit)
 	}
 
 	if err := s.Spec.Validate(kit); err != nil {
@@ -191,10 +192,10 @@ func (s ShardingBiz) ValidateCreate(kit *kit.Kit) error {
 	}
 
 	if s.Revision == nil {
-		return errors.New("revision not set")
+		return errf.ErrNoRevisionF(kit)
 	}
 
-	if err := s.Revision.ValidateCreate(); err != nil {
+	if err := s.Revision.ValidateCreate(kit); err != nil {
 		return err
 	}
 
@@ -205,11 +206,11 @@ func (s ShardingBiz) ValidateCreate(kit *kit.Kit) error {
 func (s ShardingBiz) ValidateUpdate(kit *kit.Kit) error {
 
 	if s.ID <= 0 {
-		return errors.New("invalid id")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if s.Spec == nil {
-		return errors.New("spec not set")
+		return errf.ErrNoSpecF(kit)
 	}
 
 	if err := s.Spec.Validate(kit); err != nil {
@@ -217,10 +218,10 @@ func (s ShardingBiz) ValidateUpdate(kit *kit.Kit) error {
 	}
 
 	if s.Revision == nil {
-		return errors.New("revision not set")
+		return errf.ErrNoRevisionF(kit)
 	}
 
-	if err := s.Revision.ValidateUpdate(); err != nil {
+	if err := s.Revision.ValidateUpdate(kit); err != nil {
 		return err
 	}
 

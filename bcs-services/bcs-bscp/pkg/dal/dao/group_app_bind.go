@@ -16,6 +16,7 @@ import (
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/criteria/errf"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/dal/gen"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/dal/table"
+	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/i18n"
 	"github.com/TencentBlueKing/bk-bcs/bcs-services/bcs-bscp/pkg/kit"
 )
 
@@ -51,35 +52,40 @@ func (dao *groupAppDao) BatchCreateWithTx(kit *kit.Kit, tx *gen.QueryTx, items [
 	// generate released config items id.
 	ids, err := dao.idGen.Batch(kit, table.GroupAppBindTable, len(items))
 	if err != nil {
-		return err
+		return errf.Errorf(errf.DBOpFailed, i18n.T(kit, "generate released config items id failed, err: %v", err))
 	}
 
 	for i, item := range items {
 		// validate released config item field.
-		if err := item.ValidateCreate(); err != nil {
+		if err := item.ValidateCreate(kit); err != nil {
 			return err
 		}
 		item.ID = ids[i]
 	}
 
-	return tx.Query.GroupAppBind.WithContext(kit.Ctx).Save(items...)
+	err = tx.Query.GroupAppBind.WithContext(kit.Ctx).Save(items...)
+	if err != nil {
+		return errf.Errorf(errf.DBOpFailed, i18n.T(kit, "batch create group app failed, err: %v", err))
+	}
+
+	return nil
 }
 
 // BatchDeleteByGroupIDWithTx batch delete group app by group id with transaction.
 func (dao *groupAppDao) BatchDeleteByGroupIDWithTx(kit *kit.Kit, tx *gen.QueryTx, groupID, bizID uint32) error {
 
 	if groupID == 0 {
-		return errf.New(errf.InvalidParameter, "group id is 0")
+		return errf.ErrInvalidIDF(kit)
 	}
 
 	if bizID == 0 {
-		return errf.New(errf.InvalidParameter, "biz id is 0")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	m := tx.Query.GroupAppBind
 	if _, err := tx.Query.GroupAppBind.WithContext(kit.Ctx).Where(
 		m.GroupID.Eq(groupID), m.BizID.Eq(bizID)).Delete(); err != nil {
-		return err
+		return errf.Errorf(errf.DBOpFailed, i18n.T(kit, "batch delete group app failed, err: %v", err))
 	}
 
 	return nil
@@ -89,17 +95,20 @@ func (dao *groupAppDao) BatchDeleteByGroupIDWithTx(kit *kit.Kit, tx *gen.QueryTx
 func (dao *groupAppDao) BatchDeleteByAppIDWithTx(kit *kit.Kit, tx *gen.QueryTx, appID, bizID uint32) error {
 
 	if appID == 0 {
-		return errf.New(errf.InvalidParameter, "app id is 0")
+		return errf.ErrInvalidAppIDF(kit)
 	}
 
 	if bizID == 0 {
-		return errf.New(errf.InvalidParameter, "biz id is 0")
+		return errf.ErrInvalidBizIDF(kit)
 	}
 
 	m := tx.GroupAppBind
 	_, err := m.WithContext(kit.Ctx).Where(m.AppID.Eq(appID), m.BizID.Eq(bizID)).Delete()
+	if err != nil {
+		return errf.Errorf(errf.DBOpFailed, i18n.T(kit, "batch delete group app failed, err: %v", err))
+	}
 
-	return err
+	return nil
 }
 
 // BatchListByGroupIDs batch list group app by group ids.
@@ -107,7 +116,7 @@ func (dao *groupAppDao) BatchListByGroupIDs(kit *kit.Kit,
 	bizID uint32, groupIDs []uint32) ([]*table.GroupAppBind, error) {
 
 	if bizID == 0 {
-		return nil, errf.New(errf.InvalidParameter, "biz id is 0")
+		return nil, errf.ErrInvalidBizIDF(kit)
 	}
 
 	if len(groupIDs) == 0 {
@@ -115,22 +124,30 @@ func (dao *groupAppDao) BatchListByGroupIDs(kit *kit.Kit,
 	}
 
 	m := dao.genQ.GroupAppBind
-	return m.WithContext(kit.Ctx).Where(m.BizID.Eq(bizID), m.GroupID.In(groupIDs...)).Find()
+	items, err := m.WithContext(kit.Ctx).Where(m.BizID.Eq(bizID), m.GroupID.In(groupIDs...)).Find()
+	if err != nil {
+		return nil, errf.Errorf(errf.DBOpFailed, i18n.T(kit, "list group app failed, err: %v", err))
+	}
+	return items, nil
 
 }
 
 // Get get GroupAppBind by group id and app id.
 func (dao *groupAppDao) Get(kit *kit.Kit, groupID, appID, bizID uint32) (*table.GroupAppBind, error) {
 	if bizID == 0 {
-		return nil, errf.New(errf.InvalidParameter, "biz id is 0")
+		return nil, errf.ErrInvalidBizIDF(kit)
 	}
 	if groupID == 0 {
-		return nil, errf.New(errf.InvalidParameter, "group id is 0")
+		return nil, errf.ErrInvalidIDF(kit)
 	}
 	if appID == 0 {
-		return nil, errf.New(errf.InvalidParameter, "app id is 0")
+		return nil, errf.ErrInvalidAppIDF(kit)
 	}
 
 	m := dao.genQ.GroupAppBind
-	return m.WithContext(kit.Ctx).Where(m.GroupID.Eq(groupID), m.AppID.Eq(appID), m.BizID.Eq(bizID)).Take()
+	item, err := m.WithContext(kit.Ctx).Where(m.GroupID.Eq(groupID), m.AppID.Eq(appID), m.BizID.Eq(bizID)).Take()
+	if err != nil {
+		return nil, errf.Errorf(errf.DBOpFailed, "get group app bind failed, err: %v", err)
+	}
+	return item, nil
 }

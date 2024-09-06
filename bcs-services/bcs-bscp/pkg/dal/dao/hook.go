@@ -13,8 +13,6 @@
 package dao
 
 import (
-	"errors"
-
 	"gorm.io/datatypes"
 	rawgen "gorm.io/gen"
 
@@ -301,10 +299,10 @@ func (dao *hookDao) CountHookTag(kit *kit.Kit, bizID uint32) ([]*types.HookTagCo
 func (dao *hookDao) DeleteWithTx(kit *kit.Kit, tx *gen.QueryTx, g *table.Hook) error {
 
 	if g == nil {
-		return errors.New("hook is nil")
+		return errf.ErrInvalidArgF(kit)
 	}
 
-	if err := g.ValidateDelete(); err != nil {
+	if err := g.ValidateDelete(kit); err != nil {
 		return err
 	}
 
